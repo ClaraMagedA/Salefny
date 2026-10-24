@@ -7,14 +7,19 @@ High purchasing costs for items needed only for rare, one-time use, paired with 
 
 🌟 Key Features
 For Renters : 
+
 1.Smart search capabilities filtered by category and location.   
 2.Interactive booking calendar for smooth scheduling.   
 3.Ratings and reviews system to build trust and transparency.   
+
 For Owners : 
+
 1.Listing management tools for photos, pricing, and security deposits.   
 2.Booking request controls to review, approve, or reject rentals.   
-3.Full availability management to handle item calendars.   
+3.Full availability management to handle item calendars. 
+
 For Admins :
+
 1.Identity verification systems to secure the platform.   
 2.User management and category organization tools.   
 3.Centralized analytics dashboard.   
