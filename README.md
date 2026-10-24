@@ -5,7 +5,8 @@ Salfni is an online platform built on the Sharing Economy model (similar to Airb
 
 🚀 Core Concept & ObjectivesThe Problem: 
 
-High purchasing costs for items needed only for rare, one-time use, paired with valuable assets lying idle at home.   The Goal: Deliver affordable rental solutions for renters, generate passive income streams for item owners, and maintain a secure peer-to-peer sharing ecosystem
+High purchasing costs for items needed only for rare, one-time use, paired with valuable assets lying idle at home.  
+The Goal: Deliver affordable rental solutions for renters, generate passive income streams for item owners, and maintain a secure peer-to-peer sharing ecosystem
 
 🌟 Key Features
 For Renters : 
@@ -25,6 +26,22 @@ For Admins :
 1.Identity verification systems to secure the platform.   
 2.User management and category organization tools.   
 3.Centralized analytics dashboard.   
+
+👥 Team Members :
+كلارا ماجد عبداله مكاري
+نورهان رمضان حسان همشري
+مي أشرف عبدالله حسن
+شروق هاني مصطفى محمد
+روڤانا سامح سامي سرور
+
+🗓️ Work Plan (Phases & Timeline):
+
+Phase 1: Finalize system specifications and architectural design.
+Phase 2: Implement the core backend engine and data persistence layers.
+Phase 3: Construct the responsive front end and interactive UI components.
+Phase 4: Integrate APIs for security authentication and real-time communication.
+Phase 5: Execute comprehensive unit and integration testing followed by final project documentation.
+
 
 🛠️ Tech Stack:-
 Frontend: HTML5, CSS3, JavaScript, Bootstrap 5   
