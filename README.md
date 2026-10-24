@@ -29,17 +29,25 @@ For Admins :
 
 👥 Team Members :
 كلارا ماجد عبداله مكاري
+
 نورهان رمضان حسان همشري
+
 مي أشرف عبدالله حسن
+
 شروق هاني مصطفى محمد
+
 روڤانا سامح سامي سرور
 
 🗓️ Work Plan (Phases & Timeline):
 
 Phase 1: Finalize system specifications and architectural design.
+
 Phase 2: Implement the core backend engine and data persistence layers.
+
 Phase 3: Construct the responsive front end and interactive UI components.
+
 Phase 4: Integrate APIs for security authentication and real-time communication.
+
 Phase 5: Execute comprehensive unit and integration testing followed by final project documentation.
 
 
