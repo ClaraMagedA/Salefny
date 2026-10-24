@@ -28,6 +28,7 @@ For Admins :
 3.Centralized analytics dashboard.   
 
 👥 Team Members :
+
 كلارا ماجد عبداله مكاري
 
 نورهان رمضان حسان همشري
@@ -52,6 +53,7 @@ Phase 5: Execute comprehensive unit and integration testing followed by final pr
 
 
 🛠️ Tech Stack:-
+
 Frontend: HTML5, CSS3, JavaScript, Bootstrap 5   
 Backend: ASP.NET MVC   
 Database: SQL Server 
