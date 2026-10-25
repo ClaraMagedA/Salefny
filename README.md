@@ -176,10 +176,9 @@ The planned solution follows a layered architecture with separation of concerns:
 ```text
 Salefny/
 ├── README.md
-├── docs/
-│   └── [SALEFNI_Graduation_Project_Documentation.docx](https://docs.google.com/document/d/18tkH7eESsXnJT8j5Ya_GWfg2zppu2I_ksb1NkMlsyV0/edit?usp=sharing)
+├── SALEFNI سلفني – Graduation Project Documentation.docx
 └── src/
-    └── ASP.NET Core MVC application
+    └── ASP.NET Core MVC application 
 ```
 
 > **Note:** The `src/` folder and source code will be added when development starts.
