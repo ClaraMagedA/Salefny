@@ -1,7 +1,7 @@
-# Salfni
-Salfni (سَلِّفْنِي) – P2P Item Rental Platform
+# Salefny
+Salefny (سَلِّفْنِي) – P2P Item Rental Platform
 
-Salfni is an online platform built on the Sharing Economy model (similar to Airbnb), shifting the focus from real estate to everyday tools, professional equipment, and personal assets. It provides a secure framework for peer-to-peer asset sharing, allowing owners to monetize idle items while giving renters budget-friendly access to what they need.
+Salefny is an online platform built on the Sharing Economy model (similar to Airbnb), shifting the focus from real estate to everyday tools, professional equipment, and personal assets. It provides a secure framework for peer-to-peer asset sharing, allowing owners to monetize idle items while giving renters budget-friendly access to what they need.
 
 🚀 Core Concept & ObjectivesThe Problem: 
 
