@@ -101,7 +101,7 @@ The planned solution follows a layered architecture with separation of concerns:
 
 | # | Name | Role |
 |---|---|---|
-| 1 | Clara Maged Abdalla Makary | Project Manager / Scrum Master |
+| 1 | Clara Maged Abdalla Makary | Project Manager & UI/UX Designer |
 | 2 | Mai Ashraf Abdallah Hassan | Backend Developer |
 | 3 | Nourhan Ramadan Hassan Hamshary | Frontend Developer & UI/UX Designer |
 | 4 | Shorouk Hany Mostafa Mohamed | Database Designer |
@@ -170,20 +170,100 @@ The planned solution follows a layered architecture with separation of concerns:
 ### Current Files
 
 - [Project Documentation](https://docs.google.com/document/d/18tkH7eESsXnJT8j5Ya_GWfg2zppu2I_ksb1NkMlsyV0/edit?usp=sharing) — Project planning, stakeholder analysis, database design, requirements, and UI/UX documentation.
+- https://www.figma.com/design/Q9WvTtjg5lnYSwPpiDoJpz/Salefny?node-id=0-1&t=CI8ssyrcd3IYFKEK-1 - UI/UX Design
 
 ### Planned Project Structure
 
-```text
 Salefny/
-├── README.md
-├── SALEFNI سلفني – Graduation Project Documentation.docx
-└── src/
-    └── ASP.NET Core MVC application 
+│
+├── Controllers/                         # Presentation Layer (MVC Controllers)
+│   ├── HomeController.cs                # Landing page, About, Contact, FAQ
+│   ├── AccountController.cs             # Register, Login, Profile, eKYC upload
+│   ├── ItemsController.cs               # Browse, Search, Item Details, Create/Edit Listing
+│   ├── BookingsController.cs            # Rental requests, Availability calendar, My Bookings
+│   ├── DisputesController.cs            # 6-Angle inspection photo studio & damage claims
+│   └── AdminController.cs               # Admin Dashboard, ID verification queue, user moderation
+│
+├── Models/                              # Domain Layer & ViewModels
+│   ├── Entities/                        [✔ DONE] Domain Entity Classes
+│   │   ├── ApplicationUser.cs           # Custom User Profile (Extends IdentityUser)
+│   │   ├── IdentityVerification.cs      # National ID / Passport eKYC Queue
+│   │   ├── Category.cs                  # Hierarchical item categories
+│   │   ├── Item.cs                      # Rentable assets with price & deposit
+│   │   ├── ItemImage.cs                 # Multi-photo gallery storage
+│   │   ├── AvailabilityBlock.cs         # Owner calendar blocks
+│   │   ├── Booking.cs                   # Rental lifecycle & escrow snapshot
+│   │   ├── Review.cs                    # Ratings and feedback
+│   │   ├── Notification.cs              # In-app and email alerts
+│   │   ├── FavoriteItem.cs              # Wishlist system
+│   │   └── DisputeLog.cs                # 6-angle damage claims tracking
+│   │
+│   ├── Enums/                           [✔ DONE] Status & Constant Enums
+│   │   ├── VerificationStatus.cs        # Pending, Approved, Rejected
+│   │   └── BookingStatus.cs             # Pending, Approved, Active, Completed, etc.
+│   │
+│   └── ViewModels/                      # Data transfer objects for Razor Views
+│       ├── HomeIndexViewModel.cs
+│       ├── ItemSearchViewModel.cs
+│       ├── BookingRequestViewModel.cs
+│       └── AdminDashboardViewModel.cs
+│
+├── Services/                            # Application Layer (Business Logic & Rules)
+│   ├── IBookingService.cs               # Interface for booking & overlap validation rules
+│   ├── BookingService.cs                # Implements 3NF double-booking prevention & price calculation
+│   ├── IVerificationService.cs          # Interface for eKYC & ID reviews
+│   ├── VerificationService.cs           # Implements identity status updates
+│   ├── IEmailService.cs                 # Interface for email notifications
+│   └── EmailService.cs                  # SMTP / Test mail implementation
+│
+├── Data/                                # Infrastructure Layer (Database Access)
+│   ├── SalefnyDbContext.cs              [✔ DONE] EF Core DbContext referencing Enums & Entities
+│   └── SeedData.cs                      # Initial starter categories and admin account
+│
+├── Migrations/                          # EF Core Code-First Migrations
+│   ├── 20261026000000_InitialCreate.cs
+│   └── SalefnyDbContextModelSnapshot.cs
+│
+├── Views/                               # Presentation Layer (Razor Views - RTL Arabic UI)
+│   ├── Home/
+│   │   ├── Index.cshtml                 # Hero search box, categories, featured items
+│   │   └── Privacy.cshtml
+│   ├── Account/
+│   │   ├── Login.cshtml
+│   │   ├── Register.cshtml
+│   │   ├── Profile.cshtml               # User personal info & ID verification status
+│   │   └── MyListings.cshtml            # Owner's listed items & daily rates
+│   ├── Items/
+│   │   ├── Index.cshtml                 # Search catalog with filters (city, category, price)
+│   │   ├── Details.cshtml               # Item gallery, daily price, deposit, availability calendar
+│   │   └── Create.cshtml                # 6-angle initial upload studio for lenders
+│   ├── Bookings/
+│   │   ├── Create.cshtml                # Date picker, price breakdown, deposit summary
+│   │   ├── MyBookings.cshtml            # Renter bookings grouped by status tabs
+│   │   └── OwnerRequests.cshtml         # Owner incoming requests (Approve, Reject, Handover)
+│   ├── Disputes/
+│   │   └── InspectionStudio.cshtml      # 6-Angle photo comparison studio for damage claims
+│   ├── Admin/
+│   │   ├── Dashboard.cshtml             # Key numbers, charts, and platform KPIs
+│   │   ├── Verifications.cshtml         # 14-digit National ID approval queue
+│   │   └── Users.cshtml                 # User suspension and role management
+│   └── Shared/
+│       ├── _Layout.cshtml             # Main Bootstrap 5 RTL layout template
+│       ├── _ValidationScriptsPartial.cshtml
+│       └── Error.cshtml                 # Friendly error pages (403, 404, 500)
+│
+├── wwwroot/                             # Static Files & Assets
+│   ├── css/
+│   │   └── site.css                     # Custom styling, emerald theme variables
+│   ├── js/
+│   │   └── site.js                      # Client-side validation & interactive helpers
+│   ├── lib/                             # Third-party client libraries (Bootstrap 5 RTL, FontAwesome)
+│   └── uploads/                         # Private folder for ID documents and item photos
+│
+├── appsettings.json                     # Database connection strings & configuration
+├── Program.cs                           # App entry point, DI container, Identity configuration
+└── Salefny.csproj                       # Project file and NuGet package references
 ```
-
-> **Note:** The `src/` folder and source code will be added when development starts.
-
----
 
 # Salefny
 
