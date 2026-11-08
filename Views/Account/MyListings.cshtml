@@ -1,0 +1,42 @@
+﻿@{
+    ViewData["Title"] = "منتجاتي المعروضة للتأجير";
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold mb-0"><i class="fa-solid fa-store text-success ms-2"></i> أدواتي ومنتجاتي المعروضة للتأجير</h5>
+        <a asp-controller="Items" asp-action="Create" class="btn btn-emerald btn-sm">+ إضافة منتج جديد</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>المنتج المعروض</th>
+                    <th>سعر التأجير اليومي</th>
+                    <th>الضمان المطلوب</th>
+                    <th>المستأجر الحالي</th>
+                    <th>حالة العرض</th>
+                    <th>الإجراءات والتحقق</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-light rounded p-2 text-center" style="width: 45px; height: 45px;"><i class="fa-solid fa-camera"></i></div>
+                            <div><strong>طائرة درون DJI Mavic Air 2S</strong><span class="text-muted small d-block">القسم: معدات تصوير سينمائي</span></div>
+                        </div>
+                    </td>
+                    <td>650 ج.م / يوم</td>
+                    <td>3,000 ج.م</td>
+                    <td>أحمد محمود (Nasr City)</td>
+                    <td><span class="badge bg-warning text-dark">مؤجر حالياً</span></td>
+                    <td>
+                        <a asp-controller="Disputes" asp-action="InspectionStudio" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-triangle-exclamation ms-1"></i> فتح تحقيق في ضرر</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,105 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "منازعات فحص الـ 6 زوايا وتتسوية الأضرار";
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation text-danger ms-2"></i> منازعات فحص الـ 6 زوايا وتتسوية الأضرار</h5>
+            <span class="text-muted small">استوديو المقارنة البصرية بين شبكة الاستلام وشبكة الإرجاع</span>
+        </div>
+        <div class="btn-group btn-group-sm">
+            <button class="btn btn-emerald active">الكل</button>
+            <button class="btn btn-outline-secondary">معلقة</button>
+            <button class="btn btn-outline-secondary">ودائع عالية</button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>رقم العملية</th>
+                    <th>الغرض المعار</th>
+                    <th>المؤجر والمستأجر</th>
+                    <th>قيمة الوديعة</th>
+                    <th>حالة الضمان (Escrow)</th>
+                    <th>الإجراء المتاح</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>#ESC-9012</code></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=50&q=80" class="rounded" width="40">
+                            <strong>كاميرا Canon EOS R6</strong>
+                        </div>
+                    </td>
+                    <td>مؤجر: أحمد م. &larr; مستأجر: سارة ك.</td>
+                    <td><strong>3,000 ج.م</strong></td>
+                    <td><span class="badge bg-warning text-dark">قيد المراجعة (Under Review)</span></td>
+                    <td>
+                        <button class="btn btn-dark btn-sm" data-bs-toggle="modal" data-bs-target="#disputeReviewModal"><i class="fa-solid fa-scale-balanced ms-1"></i> مراجعة ادعاء الخدش</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Dispute Resolution Modal -->
+<div class="modal fade" id="disputeReviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 overflow-hidden">
+            <div class="bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="fa-solid fa-scale-balanced text-warning ms-2"></i> مراجعة نزاع الخدش - عملية #ESC-9012</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-warning small mb-4">
+                    <strong>ادعاء المؤجر (أحمد):</strong> "يوجد خدش سطحي في عدسة الكاميرا لم يكن موجوداً قبل التسليم"
+                </div>
+
+                <h6 class="fw-bold mb-3">مقارنة الزاوية العلوية (Top Angle Inspection):</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="border rounded-3 p-2 text-center bg-light">
+                            <span class="small fw-bold text-muted d-block mb-1">قبل التسليم (المؤجر)</span>
+                            <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=300&q=80" class="img-fluid rounded mb-2">
+                            <span class="badge bg-success">سليمة 100%</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border border-danger rounded-3 p-2 text-center bg-light">
+                            <span class="small fw-bold text-muted d-block mb-1">بعد الإرجاع (المستأجر)</span>
+                            <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=300&q=80" class="img-fluid rounded mb-2">
+                            <span class="badge bg-danger">خدش طفيف ظاهر</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold small">قرار الإدارة المالي للضمان (Escrow Decision)</label>
+                    <select class="form-select">
+                        <option>خصم 500 ج.م تكلفة إصلاح وتحويلها للمؤجر + إرجاع 2,500 ج.م للمستأجر</option>
+                        <option>خصم كامل الوديعة (3,000 ج.م) للمؤجر</option>
+                        <option>رفض الادعاء وإرجاع كامل الوديعة (3,000 ج.م) للمستأجر</option>
+                    </select>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <div>
+                        <span class="text-muted small d-block">مبلغ الضمان المحجوز</span>
+                        <h4 class="fw-bold text-danger mb-0">5,000 ج.م</h4>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-light" data-bs-dismiss="modal">إغلاق</button>
+                        <button class="btn btn-dark px-4">اعتماد القرار والتسوية</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

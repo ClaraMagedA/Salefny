@@ -1,0 +1,76 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "قائمة توثيق الهوية الوطنية (eKYC)";
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-address-card text-warning ms-2"></i> قائمة توثيق الهوية الوطنية (الرقم القومي)</h5>
+            <span class="text-muted small">مراجعة أرقام البطاقات والتحقق من صور الحسابات</span>
+        </div>
+        <div class="d-flex gap-2">
+            <input type="text" class="form-control form-control-sm" placeholder="بحث بالاسم أو الرقم القومي...">
+            <button class="btn btn-emerald btn-sm px-3"><i class="fa-solid fa-rotate ms-1"></i> تحديث</button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>بيانات المستخدم</th>
+                    <th>الرقم القومي (14 رقم)</th>
+                    <th>المحافظة / الحي</th>
+                    <th>تاريخ التقديم</th>
+                    <th>الحالة</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-user-circle fs-3 text-secondary"></i>
+                            <div>
+                                <strong class="d-block">أحمد محمود سعد</strong>
+                                <span class="text-muted small">ahmed.m@gmail.com</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td><code>29910200104859</code></td>
+                    <td>القاهرة (مدينة نصر)</td>
+                    <td>24 أكتوبر 2026</td>
+                    <td><span class="badge bg-warning text-dark">قيد المراجعة</span></td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-success btn-sm"><i class="fa-solid fa-check ms-1"></i> موافقة</button>
+                            <button class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-xmark ms-1"></i> رفض</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-user-circle fs-3 text-secondary"></i>
+                            <div>
+                                <strong class="d-block">نوران الدين حسن</strong>
+                                <span class="text-muted small">nouran.h@gmail.com</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td><code>30105151203482</code></td>
+                    <td>الجيزة (الدقي)</td>
+                    <td>24 أكتوبر 2026</td>
+                    <td><span class="badge bg-warning text-dark">قيد المراجعة</span></td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-success btn-sm"><i class="fa-solid fa-check ms-1"></i> موافقة</button>
+                            <button class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-xmark ms-1"></i> رفض</button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

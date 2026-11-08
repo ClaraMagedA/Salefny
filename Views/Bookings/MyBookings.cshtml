@@ -1,0 +1,38 @@
+﻿@{
+    ViewData["Title"] = "تأجيراتي ونشاطي";
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm">
+    <h5 class="fw-bold mb-4"><i class="fa-solid fa-box text-success ms-2"></i> تأجيراتي وعمليات الاستعارة السابقة</h5>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>رقم الحجز</th>
+                    <th>المنتج</th>
+                    <th>المالك</th>
+                    <th>مدة التأجير</th>
+                    <th>إيجار اليوم</th>
+                    <th>الضمان المحجوز</th>
+                    <th>حالة العملية</th>
+                    <th>الإجراء</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>#ORD-99201</code></td>
+                    <td><strong>كاميرا Sony Alpha a7 III</strong></td>
+                    <td>زياد هاني (المعادي)</td>
+                    <td>3 أيام (24 - 27 أكتوبر)</td>
+                    <td>450 ج.م</td>
+                    <td><span class="badge bg-warning text-dark">5,000 ج.م (محجوز)</span></td>
+                    <td><span class="badge bg-success">قيد الاستخدام</span></td>
+                    <td>
+                        <a asp-controller="Disputes" asp-action="InspectionStudio" class="btn btn-emerald btn-sm"><i class="fa-solid fa-camera ms-1"></i> رفع صور الإرجاع</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

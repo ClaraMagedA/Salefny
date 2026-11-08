@@ -1,0 +1,38 @@
+﻿@{
+    ViewData["Title"] = "تأجير غرض جديد (استوديو الـ 6 زوايا)";
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm">
+    <h4 class="fw-bold mb-2"><i class="fa-solid fa-camera text-success ms-2"></i> استوديو توثيق الحالة (6 زوايا إجبارية للمالك)</h4>
+    <p class="text-muted small mb-4">يرجى التقاط ورفع صور المنتج من كافة الزوايا لحماية ووديعة الضمان الخاصة بك.</p>
+
+    <form method="post" enctype="multipart/form-data">
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label small fw-bold">عنوان المنتج</label>
+                <input type="text" class="form-control" placeholder="مثال: شنيور ماكيتا احترافي" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-bold">سعر التأجير اليومي (ج.م)</label>
+                <input type="number" class="form-control" placeholder="150" required>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            @foreach (var angle in new[] { "1. الواجهة الأمامية (Front)", "2. الجهة الخلفية (Back)", "3. الجانب الأيسر (Left)", "4. الجانب الأيمن (Right)", "5. الجهة العلوية (Top)", "6. القاعدة والرقم التسلسلي (Bottom)" })
+            {
+                <div class="col-md-4">
+                    <div class="border border-dashed rounded-3 p-3 text-center bg-light">
+                        <i class="fa-solid fa-camera fs-3 text-success mb-2"></i>
+                        <span class="d-block small fw-bold mb-1">@angle</span>
+                        <input type="file" class="form-control form-control-sm" required>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-emerald px-5 py-2">نشر المنتج في السوق</button>
+        </div>
+    </form>
+</div>

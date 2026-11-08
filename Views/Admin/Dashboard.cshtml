@@ -1,0 +1,78 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "لوحة تحكم سَلِّفني - النظرة العامة";
+}
+
+<!-- Admin Top Navigation Bar -->
+<div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm">
+    <div class="d-flex align-items-center gap-3">
+        <span class="fs-4 fw-bold text-success"><i class="fa-solid fa-sliders ms-2"></i> لوحة تحكم سَلِّفني</span>
+        <span class="text-muted border-start ps-3">مسؤول النظام: <strong>كلارا ماجد</strong></span>
+    </div>
+    <div class="nav nav-pills gap-2">
+        <a asp-action="Dashboard" class="nav-link active bg-emerald text-white"><i class="fa-solid fa-chart-line ms-1"></i> النظرة العامة</a>
+        <a asp-action="Verifications" class="nav-link bg-light text-dark"><i class="fa-solid fa-address-card ms-1"></i> توثيق الهوية (eKYC) <span class="badge bg-warning text-dark">12</span></a>
+        <a asp-action="Disputes" class="nav-link bg-light text-dark"><i class="fa-solid fa-triangle-exclamation ms-1"></i> منازعات الفحص <span class="badge bg-danger">3</span></a>
+        <a asp-action="EscrowLedger" class="nav-link bg-light text-dark"><i class="fa-solid fa-vault ms-1"></i> دفتر الضمان (Escrow)</a>
+    </div>
+</div>
+
+<!-- Admin KPI Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="bg-white p-3 rounded-4 shadow-sm border">
+            <span class="text-muted small d-block">إجمالي الضمانات المحجوزة</span>
+            <h4 class="fw-bold text-dark mt-1">148,500 ج.م</h4>
+            <span class="text-success small fw-bold">+14% مقارنة بالأسبوع الماضي</span>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="bg-white p-3 rounded-4 shadow-sm border">
+            <span class="text-muted small d-block">طلبات توثيق معلقة</span>
+            <h4 class="fw-bold text-warning mt-1">12 مستخدماً</h4>
+            <span class="text-muted small">متوسط وقت المراجعة: 18 دقيقة</span>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="bg-white p-3 rounded-4 shadow-sm border">
+            <span class="text-muted small d-block">منازعات فحص نشطة</span>
+            <h4 class="fw-bold text-danger mt-1">3 حالات</h4>
+            <span class="text-danger small">تتطلب فحساً بصرياً</span>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="bg-white p-3 rounded-4 shadow-sm border">
+            <span class="text-muted small d-block">أرباح عمولة المنصة</span>
+            <h4 class="fw-bold text-emerald mt-1">11,880 ج.م</h4>
+            <span class="text-muted small">نسبة العمولة 8%</span>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Section Cards -->
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="bg-white p-4 rounded-4 shadow-sm border text-center">
+            <i class="fa-solid fa-address-card fs-1 text-warning mb-3"></i>
+            <h5 class="fw-bold">نظام توثيق الهوية (eKYC)</h5>
+            <p class="text-muted small mb-3">مراجعة والتحقق من البطاقات الشخصية المصرية (14 رقم) ومطابقة الصور.</p>
+            <a asp-action="Verifications" class="btn btn-warning btn-sm w-100 fw-bold">12 في انتظار الموافقة</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="bg-white p-4 rounded-4 shadow-sm border text-center">
+            <i class="fa-solid fa-arrows-rotate fs-1 text-danger mb-3"></i>
+            <h5 class="fw-bold">مركز منازعات الفحص (6 زوايا)</h5>
+            <p class="text-muted small mb-3">مقارنة صور الاستلام بصور الإرجاع لحل مطالبات الأضرار والضمانات.</p>
+            <a asp-action="Disputes" class="btn btn-danger btn-sm w-100 fw-bold">3 حالات نشطة</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="bg-white p-4 rounded-4 shadow-sm border text-center">
+            <i class="fa-solid fa-vault fs-1 text-success mb-3"></i>
+            <h5 class="fw-bold">دفتر الضمان والمدفوعات</h5>
+            <p class="text-muted small mb-3">تتبع الودائع التأمينية، بوابات الدفع الإلكتروني (Paymob)، وتحويلات InstaPay.</p>
+            <a asp-action="EscrowLedger" class="btn btn-emerald btn-sm w-100 fw-bold">148,500 ج.م نشط</a>
+        </div>
+    </div>
+</div>

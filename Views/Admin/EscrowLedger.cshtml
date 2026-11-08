@@ -1,0 +1,47 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "سجل ودائع الضمان وحركات Paymob";
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-vault text-success ms-2"></i> سجل ودائع الضمان وحركات Paymob</h5>
+            <span class="text-muted small">تتبع مباشر للودائع التأمينية المحجوزة في الضمان</span>
+        </div>
+        <button class="btn btn-emerald btn-sm"><i class="fa-solid fa-file-csv ms-1"></i> تصدير البيانات (CSV)</button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>رقم المعاملة</th>
+                    <th>المنتج / عملية التأجير</th>
+                    <th>طريقة الدفع</th>
+                    <th>مبلغ الضمان</th>
+                    <th>عمولة المنصة (8%)</th>
+                    <th>حالة الحجز</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>#ESC-883921</code></td>
+                    <td>شنيور ماكيتا حفر بوش الاحترافي</td>
+                    <td><span class="badge bg-primary">بطاقة Paymob</span></td>
+                    <td><strong>1,500 ج.م</strong></td>
+                    <td>36 ج.م</td>
+                    <td><span class="badge bg-success">محجوز في الضمان</span></td>
+                </tr>
+                <tr>
+                    <td><code>#ESC-883922</code></td>
+                    <td>درون تصوير DJI Mavic Air 2S</td>
+                    <td><span class="badge bg-success">InstaPay فوري</span></td>
+                    <td><strong>5,000 ج.م</strong></td>
+                    <td>108 ج.م</td>
+                    <td><span class="badge bg-warning text-dark">مراجعة الاستلام</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

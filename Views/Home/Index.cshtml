@@ -1,0 +1,197 @@
+﻿@{
+    ViewData["Title"] = "الرئيسية";
+}
+
+<style>
+    .hero-banner {
+        background: linear-gradient(135deg, #064e3b 0%, #0d9488 100%);
+        border-radius: 24px;
+        padding: 48px 24px;
+        color: white;
+        text-align: center;
+        box-shadow: 0 10px 25px -5px rgba(13, 148, 136, 0.3);
+    }
+
+    .hero-title {
+        font-weight: 800;
+        font-size: 2.3rem;
+        margin-bottom: 24px;
+    }
+
+    .search-box-container {
+        background: white;
+        border-radius: 50px;
+        padding: 8px 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .search-input {
+        border: none;
+        outline: none;
+        width: 100%;
+        padding: 8px;
+        font-size: 0.95rem;
+    }
+
+    .search-select {
+        border: none;
+        outline: none;
+        background: transparent;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 0 8px;
+    }
+
+    .item-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        background: white;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .item-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -5px rgba(0,0,0,0.1);
+        }
+
+    .card-img-wrapper {
+        position: relative;
+        height: 190px;
+        overflow: hidden;
+    }
+
+        .card-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .location-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(15, 23, 42, 0.75);
+        color: white;
+        backdrop-filter: blur(4px);
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+</style>
+
+<!-- Hero & Search Section -->
+<section class="mb-5">
+    <div class="hero-banner">
+        <h1 class="hero-title">استأجر كل ما تحتاجه بأمان<br>من جيرانك ومحيطك السكني</h1>
+
+        <form asp-controller="Items" asp-action="Index" method="get" class="search-box-container d-flex align-items-center flex-wrap flex-md-nowrap gap-2">
+            <div class="d-flex align-items-center flex-grow-1 px-2">
+                <i class="fa-solid fa-magnifying-glass text-muted ms-2"></i>
+                <input type="text" name="keyword" class="search-input" placeholder="عن ماذا تبحث؟ (كاميرا، خيمة، سُلَّم...)">
+            </div>
+            <div class="border-start d-none d-md-block" style="height: 30px;"></div>
+            <div class="d-flex align-items-center px-2">
+                <i class="fa-solid fa-location-dot text-muted ms-2"></i>
+                <select name="city" class="search-select">
+                    <option value="">جميع المحافظات المصرية</option>
+                    <option value="Cairo">القاهرة</option>
+                    <option value="Giza">الجيزة</option>
+                    <option value="Alexandria">الإسكندرية</option>
+                    <option value="Dakahlia">الدقهلية</option>
+                </select>
+            </div>
+            <div class="border-start d-none d-md-block" style="height: 30px;"></div>
+            <div class="d-flex align-items-center px-2">
+                <i class="fa-solid fa-layer-group text-muted ms-2"></i>
+                <select name="categoryId" class="search-select">
+                    <option value="">جميع الأقسام</option>
+                    <option value="1">معدات تصوير</option>
+                    <option value="2">معدات تخييم</option>
+                    <option value="3">أجهزة منزلية</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-emerald px-4 rounded-pill">بحث</button>
+        </form>
+    </div>
+</section>
+
+<!-- Item Grid -->
+<section>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0"><i class="fa-solid fa-grid-2 text-success ms-2"></i> الأغراض المتاحة للتأجير الآن</h4>
+        <span class="text-muted small">6 أغراض معروضة</span>
+    </div>
+
+    <div class="row g-4">
+        <!-- Item Card 1 -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="item-card">
+                <div class="card-img-wrapper">
+                    <span class="location-badge"><i class="fa-solid fa-location-dot ms-1"></i> القاهرة</span>
+                    <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80" alt="كاميرا">
+                </div>
+                <div class="p-3">
+                    <span class="text-success small fw-bold">معدات تصوير</span>
+                    <h6 class="fw-bold mt-1">كاميرا Sony Alpha A7 III + عدسة 24-70mm</h6>
+                    <p class="text-muted small mb-3"><i class="fa-solid fa-user ms-1"></i> المالك: أحمد رامي (المعادي)</p>
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                        <div>
+                            <span class="fw-bold text-dark fs-5">850 ج.م</span>
+                            <span class="text-muted small">/ اليوم</span>
+                        </div>
+                        <a asp-controller="Items" asp-action="Details" asp-route-id="1" class="btn btn-emerald btn-sm">استأجر الآن</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Item Card 2 -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="item-card">
+                <div class="card-img-wrapper">
+                    <span class="location-badge"><i class="fa-solid fa-location-dot ms-1"></i> جنوب سيناء (دهب)</span>
+                    <img src="https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=600&q=80" alt="خيمة">
+                </div>
+                <div class="p-3">
+                    <span class="text-success small fw-bold">معدات تخييم وتسلق</span>
+                    <h6 class="fw-bold mt-1">خيمة رحلات تتسع لـ 4 أشخاص + حقيبة نوم</h6>
+                    <p class="text-muted small mb-3"><i class="fa-solid fa-user ms-1"></i> المالك: سارة محمود (دهب)</p>
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                        <div>
+                            <span class="fw-bold text-dark fs-5">400 ج.م</span>
+                            <span class="text-muted small">/ اليوم</span>
+                        </div>
+                        <a asp-controller="Items" asp-action="Details" asp-route-id="2" class="btn btn-emerald btn-sm">استأجر الآن</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Item Card 3 -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="item-card">
+                <div class="card-img-wrapper">
+                    <span class="location-badge"><i class="fa-solid fa-location-dot ms-1"></i> الجيزة</span>
+                    <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80" alt="بروجكتور">
+                </div>
+                <div class="p-3">
+                    <span class="text-success small fw-bold">سينما منزلية وشاشات</span>
+                    <h6 class="fw-bold mt-1">بروجكتور ذكي بدقة 4K + شاشة عرض متحركة</h6>
+                    <p class="text-muted small mb-3"><i class="fa-solid fa-user ms-1"></i> المالك: عمر خالد (الشيخ زايد)</p>
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                        <div>
+                            <span class="fw-bold text-dark fs-5">500 ج.م</span>
+                            <span class="text-muted small">/ اليوم</span>
+                        </div>
+                        <a asp-controller="Items" asp-action="Details" asp-route-id="3" class="btn btn-emerald btn-sm">استأجر الآن</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

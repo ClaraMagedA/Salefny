@@ -1,0 +1,85 @@
+﻿@{
+    ViewData["Title"] = "الملف الشخصي - حسابك الموثق";
+}
+
+<style>
+    .account-nav-tabs {
+        border-bottom: 2px solid #e2e8f0;
+        display: flex;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .account-nav-link {
+        text-decoration: none;
+        color: #64748b;
+        font-weight: 700;
+        padding-bottom: 12px;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+    }
+
+        .account-nav-link.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+</style>
+
+<div class="bg-white p-4 rounded-4 shadow-sm mb-5">
+    <!-- Navigation Tabs -->
+    <div class="account-nav-tabs">
+        <a asp-controller="Account" asp-action="Profile" class="account-nav-link active"><i class="fa-solid fa-id-card ms-1"></i> البيانات الشخصية</a>
+        <a asp-controller="Bookings" asp-action="MyBookings" class="account-nav-link"><i class="fa-solid fa-box ms-1"></i> تأجيراتي ونشاطي (2)</a>
+        <a asp-controller="Account" asp-action="MyListings" class="account-nav-link"><i class="fa-solid fa-store ms-1"></i> منتجاتي المعروضة (2)</a>
+        <a asp-controller="Disputes" asp-action="InspectionStudio" class="account-nav-link text-warning"><i class="fa-solid fa-camera ms-1"></i> فحص الـ 6 زوايا <span class="badge bg-warning text-dark rounded-pill">مطلوب</span></a>
+    </div>
+
+    <!-- Header Card -->
+    <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light mb-4 flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <h5 class="fw-bold mb-0">كريم محمد السيد</h5>
+                    <span class="badge-verified"><i class="fa-solid fa-circle-check ms-1"></i> حساب موثق (eKYC)</span>
+                </div>
+                <span class="text-muted small"><i class="fa-solid fa-location-dot ms-1"></i> المعادي، القاهرة | انضم منذ مارس 2026</span>
+            </div>
+        </div>
+        <div class="d-flex gap-4 border-start pt-2 pt-md-0 pe-md-4">
+            <div>
+                <span class="text-muted small d-block">تقييم الثقة</span>
+                <span class="fw-bold text-dark fs-5"><i class="fa-solid fa-star text-warning ms-1"></i> 5.0 / 4.9</span>
+            </div>
+            <div>
+                <span class="text-muted small d-block">الضمان المحجوز حالياً</span>
+                <span class="fw-bold text-success fs-5">5,000 ج.م</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- eKYC Verification Banner -->
+    <div class="border rounded-3 p-4">
+        <h6 class="fw-bold mb-3"><i class="fa-solid fa-shield-halved text-success ms-2"></i> بيانات توثيق الهوية الوطنية (eKYC)</h6>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="border rounded-3 p-3 text-center bg-light">
+                    <i class="fa-solid fa-address-card text-success fs-2 mb-2"></i>
+                    <h6 class="fw-bold mb-1">تم التحقق من البطاقة الشخصية بنجاح</h6>
+                    <span class="text-muted small">تتيح لك الهوية الموثقة إمكانية استئجار المنتجات ذات القيم العالية فوراً.</span>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="bg-light p-3 rounded-3">
+                    <div class="row g-2 text-muted small">
+                        <div class="col-6">رقم الهاتف: <strong class="text-dark d-block">01234567890</strong></div>
+                        <div class="col-6">الرقم القومي (14 رقم): <strong class="text-dark d-block">30205120108842</strong></div>
+                        <div class="col-12 mt-2">المحافظة والحي: <strong class="text-dark d-block">القاهرة - التجمع الخامس</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

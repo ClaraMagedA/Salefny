@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - سَلِّفني | Salefny</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+            :root {
+                --primary-color: #0d9488;
+                --primary-hover: #0f766e;
+                --primary-light: #ccfbf1;
+                --dark-surface: #0f172a;
+                --accent-gold: #eab308;
+                --bg-light: #f8fafc;
+            }
+
+            body {
+                font-family: 'Cairo', sans-serif;
+                background-color: var(--bg-light);
+                color: #1e293b;
+            }
+
+            .navbar-custom {
+                background-color: #ffffff;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                padding: 12px 0;
+            }
+
+            .brand-logo {
+                font-weight: 800;
+                font-size: 1.8rem;
+                color: var(--primary-color);
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .nav-pill-custom {
+                background-color: #f1f5f9;
+                color: #475569;
+                border-radius: 50px;
+                padding: 6px 16px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                text-decoration: none;
+                transition: all 0.2s;
+            }
+
+            .nav-pill-custom:hover, .nav-pill-custom.active {
+                background-color: var(--primary-light);
+                color: var(--primary-color);
+            }
+
+            .btn-emerald {
+                background-color: var(--primary-color);
+                color: white;
+                border-radius: 8px;
+                font-weight: 700;
+                border: none;
+                padding: 8px 16px;
+                transition: background 0.2s;
+            }
+
+            .btn-emerald:hover {
+                background-color: var(--primary-hover);
+                color: white;
+            }
+
+            .badge-verified {
+                background-color: var(--primary-light);
+                color: var(--primary-color);
+                font-weight: 700;
+                border-radius: 20px;
+                padding: 4px 12px;
+                font-size: 0.85rem;
+            }
+
+            .badge-warning-custom {
+                background-color: #fef9c3;
+                color: #a16207;
+                font-weight: 700;
+                border-radius: 20px;
+                padding: 4px 12px;
+                font-size: 0.85rem;
+            }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-custom sticky-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a asp-controller="Home" asp-action="Index" class="brand-logo">
+                <span class="bg-success text-white rounded-3 px-2 py-1 fs-4"><i class="fa-solid fa-arrows-rotate"></i></span>
+                سَلِّفني
+            </a>
+
+            <div class="d-none d-md-flex align-items-center gap-2">
+                <a asp-controller="Items" asp-action="Index" class="nav-pill-custom active"><i class="fa-solid fa-store ms-1"></i> السوق والأغراض</a>
+                <a asp-controller="Disputes" asp-action="InspectionStudio" class="nav-pill-custom"><i class="fa-solid fa-cube ms-1"></i> الفحص سداسي الزوايا</a>
+                <a asp-controller="Home" asp-action="EscrowPolicy" class="nav-pill-custom"><i class="fa-solid fa-scale-balanced ms-1"></i> سياسة حل النزاعات والضمان</a>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <a asp-controller="Account" asp-action="Profile" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-user ms-1"></i> حسابي</a>
+                    <a asp-controller="Items" asp-action="Create" class="btn btn-emerald">+ تأجير غرضك</a>
+                }
+                else
+                {
+                    <span class="badge-warning-custom d-none d-sm-inline-block"><i class="fa-solid fa-circle-exclamation ms-1"></i> حساب غير موثق</span>
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-emerald">تسجيل الدخول</a>
+                }
+            </div>
+        </div>
+    </nav>
+
+    <main role="main" class="container py-4">
+        @RenderBody()
+    </main>
+
+    <footer class="bg-white border-top py-4 mt-5">
+        <div class="container text-center text-muted small">
+            <p class="mb-1">&copy; 2026 سَلِّفني (Salefny) - مشروع تخرج DEPI. جميع الحقوق محفوظة.</p>
+            <p class="mb-0">منصة تأجير الأغراض والأدوات بالتعاون مع وزارة الاتصالات وتكنولوجيا المعلومات.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

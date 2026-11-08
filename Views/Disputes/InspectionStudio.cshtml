@@ -1,0 +1,89 @@
+﻿@{
+    ViewData["Title"] = "فحص الـ 6 زوايا والتوثيق";
+}
+
+<style>
+    .angle-card {
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+        background: #f8fafc;
+        transition: all 0.2s;
+    }
+
+        .angle-card.done {
+            border: 2px solid var(--primary-color);
+            background: #f0fdf4;
+        }
+</style>
+
+<div class="bg-white p-4 rounded-4 shadow-sm mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="fa-solid fa-camera-rotate text-success ms-2"></i> نظام فحص توثيق حالة الغرض (Cubical 6-Angle)</h5>
+        <span class="badge bg-success fs-6">حالة المطابقة الحالية: 98% (سليم)</span>
+    </div>
+    <p class="text-muted small mb-4">يتم التقاط ومطابقة من 6 زوايا قبل التسليم وبعد الاستلام لمنع الخلافات وضمان الوديعة.</p>
+
+    <div class="row g-3">
+        <!-- Angle 1 -->
+        <div class="col-6 col-md-4">
+            <div class="angle-card done">
+                <span class="badge bg-success mb-2"><i class="fa-solid fa-check ms-1"></i> متطابق</span>
+                <h6 class="fw-bold small mb-2">1. الواجهة الأمامية (Front)</h6>
+                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=200&q=80" class="img-fluid rounded mb-2" alt="front">
+                <span class="text-muted d-block small">صورة المؤجر قبل / المستأجر بعد</span>
+            </div>
+        </div>
+        <!-- Angle 2 -->
+        <div class="col-6 col-md-4">
+            <div class="angle-card done">
+                <span class="badge bg-success mb-2"><i class="fa-solid fa-check ms-1"></i> متطابق</span>
+                <h6 class="fw-bold small mb-2">2. الشاشة والجهة الخلفية (Back)</h6>
+                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=200&q=80" class="img-fluid rounded mb-2" alt="back">
+                <span class="text-muted d-block small">صورة المؤجر قبل / المستأجر بعد</span>
+            </div>
+        </div>
+        <!-- Angle 3 -->
+        <div class="col-6 col-md-4">
+            <div class="angle-card done">
+                <span class="badge bg-success mb-2"><i class="fa-solid fa-check ms-1"></i> متطابق</span>
+                <h6 class="fw-bold small mb-2">3. الجانب الأيسر والمنافذ (Left)</h6>
+                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=200&q=80" class="img-fluid rounded mb-2" alt="left">
+                <span class="text-muted d-block small">صورة المؤجر قبل / المستأجر بعد</span>
+            </div>
+        </div>
+        <!-- Angle 4 -->
+        <div class="col-6 col-md-4">
+            <div class="angle-card done">
+                <span class="badge bg-success mb-2"><i class="fa-solid fa-check ms-1"></i> متطابق</span>
+                <h6 class="fw-bold small mb-2">4. الجانب الأيمن والمقبض (Right)</h6>
+                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=200&q=80" class="img-fluid rounded mb-2" alt="right">
+                <span class="text-muted d-block small">صورة المؤجر قبل / المستأجر بعد</span>
+            </div>
+        </div>
+        <!-- Angle 5 -->
+        <div class="col-6 col-md-4">
+            <div class="angle-card done">
+                <span class="badge bg-success mb-2"><i class="fa-solid fa-check ms-1"></i> متطابق</span>
+                <h6 class="fw-bold small mb-2">5. الجهة العلوية والأزرار (Top)</h6>
+                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=200&q=80" class="img-fluid rounded mb-2" alt="top">
+                <span class="text-muted d-block small">صورة المؤجر قبل / المستأجر بعد</span>
+            </div>
+        </div>
+        <!-- Angle 6 -->
+        <div class="col-6 col-md-4">
+            <div class="angle-card done">
+                <span class="badge bg-success mb-2"><i class="fa-solid fa-check ms-1"></i> متطابق</span>
+                <h6 class="fw-bold small mb-2">6. القاعدة والرقم التسلسلي (Bottom)</h6>
+                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=200&q=80" class="img-fluid rounded mb-2" alt="bottom">
+                <span class="text-muted d-block small">صورة المؤجر قبل / المستأجر بعد</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 p-3 bg-light rounded-3 d-flex justify-content-between align-items-center">
+        <span class="text-muted small">عند اعتماد المطابقة بنجاح، يتم تحرير المبلغ وإعادة الوديعة للمستأجر فوراً.</span>
+        <button class="btn btn-emerald">تأكيد المطابقة وإطلاق الوديعة</button>
+    </div>
+</div>

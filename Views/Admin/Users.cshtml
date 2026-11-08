@@ -1,0 +1,34 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "إدارة المستخدمين والصلاحيات";
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold mb-0"><i class="fa-solid fa-users-gear text-success ms-2"></i> إدارة المستخدمين وحظر الحسابات</h5>
+        <input type="text" class="form-control form-control-sm w-25" placeholder="بحث بالبريد أو الاسم...">
+    </div>
+
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>المستخدم</th>
+                <th>البريد الإلكتروني</th>
+                <th>المدينة</th>
+                <th>حالة التوثيق</th>
+                <th>الحالة</th>
+                <th>الإجراء</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>كريم محمد السيد</strong></td>
+                <td>karim@salefny.com</td>
+                <td>القاهرة</td>
+                <td><span class="badge bg-success">موثق eKYC</span></td>
+                <td><span class="badge bg-success">نشط</span></td>
+                <td><button class="btn btn-outline-danger btn-sm">حظر المستخدم</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
