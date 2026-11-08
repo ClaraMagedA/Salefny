@@ -173,7 +173,7 @@ The planned solution follows a layered architecture with separation of concerns:
 - https://www.figma.com/design/Q9WvTtjg5lnYSwPpiDoJpz/Salefny?node-id=0-1&t=CI8ssyrcd3IYFKEK-1 - UI/UX Design
 
 ### Planned Project Structure
-
+```
 Salefny/
 │
 ├── Controllers/                         # Presentation Layer (MVC Controllers)
