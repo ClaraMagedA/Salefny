@@ -1,0 +1,195 @@
+@model OwnerRequestViewModel
+@{
+    ViewData["Title"] = "طلب الترقية إلى مالك";
+    ViewData["ActiveAccountTab"] = "OwnerRequest";
+    var pending = ViewBag.PendingRequest is bool p && p;
+    var lastNote = ViewBag.LastNote as string;
+    var submitted = ViewBag.SubmittedRequest as OwnerRequest;
+    var categories = ViewBag.Categories as IEnumerable<Category> ?? Enumerable.Empty<Category>();
+    var angles = new[]
+    {
+        "1. الواجهة الأمامية (Front)", "2. الجهة الخلفية (Back)",
+        "3. الجانب الأيسر (Left)", "4. الجانب الأيمن (Right)",
+        "5. الجهة العلوية (Top)", "6. القاعدة والرقم التسلسلي (Bottom)"
+    };
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm">
+    @await Html.PartialAsync("_AccountNav")
+
+    @if (TempData["VerificationSuccess"] is string successMsg)
+    {
+        <div class="alert alert-success small"><i class="fa-solid fa-circle-check ms-1"></i> @successMsg</div>
+    }
+    @if (TempData["VerificationInfo"] is string infoMsg)
+    {
+        <div class="alert alert-info small"><i class="fa-solid fa-circle-info ms-1"></i> @infoMsg</div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="border rounded-4 p-4 bg-light">
+                <div class="text-center mb-4">
+                    <i class="fa-solid fa-store fa-3x text-success mb-3"></i>
+                    <h4 class="fw-bold mb-2">كن مالكاً على سَلِّفني</h4>
+                    <p class="text-muted small mb-0">
+                        أرسل بيانات المنتج الذي تريد عرضه مع صوره الست. ستراجع الإدارة المنتج وتبتّ في طلب المالك ونشره في السوق.
+                    </p>
+                </div>
+
+                @if (pending && submitted != null)
+                {
+                    <div class="alert alert-warning small">
+                        <i class="fa-solid fa-hourglass-half ms-1"></i>
+                        طلبك قيد المراجعة حالياً. لم يتم تفعيل صلاحية المالك ولم يُنشر المنتج بعد.
+                    </div>
+
+                    <h6 class="fw-bold mt-4 mb-3"><i class="fa-solid fa-box ms-1"></i> المنتج المُرسل</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6"><span class="text-muted small">العنوان</span><div class="fw-bold">@submitted.ProductTitle</div></div>
+                        <div class="col-md-3"><span class="text-muted small">القسم</span><div class="fw-bold">@submitted.Category?.Name</div></div>
+                        <div class="col-md-3"><span class="text-muted small">سعر اليوم</span><div class="fw-bold">@submitted.PricePerDay.ToString("N0") ج.م</div></div>
+                        <div class="col-md-6">
+                            <span class="text-muted small">التوفر</span>
+                            <div class="fw-bold">
+                                @if (submitted.AvailableNow)
+                                {
+                                    <text>متاح فوراً</text>
+                                }
+                                else
+                                {
+                                    <text>من @submitted.AvailableFrom?.ToString("yyyy/MM/dd") إلى @submitted.AvailableTo?.ToString("yyyy/MM/dd")</text>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-6"><span class="text-muted small">المدينة</span><div class="fw-bold">@submitted.City</div></div>
+                    </div>
+
+                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-images ms-1"></i> الصور الست المُرسلة</h6>
+                    <div class="row g-2 mb-3">
+                        @foreach (var image in submitted.Images.OrderBy(i => i.AngleIndex))
+                        {
+                            <div class="col-6 col-md-4 text-center">
+                                <img src="@image.ImagePath" alt="الزاوية @image.AngleIndex" class="img-fluid rounded border" style="height:120px;width:100%;object-fit:cover;">
+                                <div class="small fw-bold mt-1">الزاوية @image.AngleIndex</div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    @if (!string.IsNullOrWhiteSpace(lastNote))
+                    {
+                        <div class="alert alert-secondary small">
+                            <strong>ملاحظة المراجعة السابقة:</strong> @lastNote
+                        </div>
+                    }
+
+                    <form method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="All" class="text-danger small mb-3"></div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-8">
+                                <label asp-for="ProductTitle" class="form-label small fw-bold"></label>
+                                <input asp-for="ProductTitle" class="form-control" placeholder="مثال: شنيور ماكيتا احترافي">
+                                <span asp-validation-for="ProductTitle" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="CategoryId" class="form-label small fw-bold"></label>
+                                <select asp-for="CategoryId" class="form-select">
+                                    <option value="">-- اختر القسم --</option>
+                                    @foreach (var cat in categories)
+                                    {
+                                        <option value="@cat.Id">@cat.Name</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label asp-for="PricePerDay" class="form-label small fw-bold"></label>
+                                <input asp-for="PricePerDay" class="form-control" placeholder="150">
+                                <span asp-validation-for="PricePerDay" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="SecurityDeposit" class="form-label small fw-bold"></label>
+                                <input asp-for="SecurityDeposit" class="form-control" placeholder="1000">
+                                <span asp-validation-for="SecurityDeposit" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="City" class="form-label small fw-bold"></label>
+                                <input asp-for="City" class="form-control" placeholder="القاهرة">
+                                <span asp-validation-for="City" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="border rounded-3 p-3 mb-3">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" asp-for="AvailableNow" id="availableNow">
+                                <label class="form-check-label small fw-bold" for="availableNow">المنتج متاح فوراً</label>
+                            </div>
+                            <div class="row g-3" id="availabilityDates">
+                                <div class="col-md-6">
+                                    <label asp-for="AvailableFrom" class="form-label small fw-bold"></label>
+                                    <input asp-for="AvailableFrom" class="form-control" type="date">
+                                    <span asp-validation-for="AvailableFrom" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="AvailableTo" class="form-label small fw-bold"></label>
+                                    <input asp-for="AvailableTo" class="form-control" type="date">
+                                    <span asp-validation-for="AvailableTo" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Description" class="form-label small fw-bold"></label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="وصف مختصر للحالة والملحقات"></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="fw-bold mb-3"><i class="fa-solid fa-cube ms-1"></i> صور الفحص سداسي الزوايا (6 صور مطلوبة)</h6>
+                        <p class="text-muted small">سيتم إرسال الصور إلى الإدارة للتحقق من وجود المنتج ووضوح الصور وخلوه من التلف.</p>
+                        <div class="row g-3 mb-4">
+                            @for (var i = 0; i < angles.Length; i++)
+                            {
+                                <div class="col-md-4">
+                                    <div class="border rounded-3 p-3 text-center bg-light h-100">
+                                        <i class="fa-solid fa-camera fs-3 text-success mb-2"></i>
+                                        <span class="d-block small fw-bold mb-2">@angles[i]</span>
+                                        <input type="file" name="angleImages" class="form-control form-control-sm" accept="image/*" required>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <span asp-validation-for="AngleImages" class="text-danger small d-block mb-3"></span>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-emerald px-5 py-2">
+                                <i class="fa-solid fa-paper-plane ms-1"></i> إرسال المنتج للمراجعة
+                            </button>
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var toggle = document.getElementById('availableNow');
+            var dates = document.getElementById('availabilityDates');
+            if (!toggle || !dates) return;
+            function sync() {
+                dates.style.display = toggle.checked ? 'none' : 'row';
+            }
+            toggle.addEventListener('change', sync);
+            sync();
+        })();
+    </script>
+}

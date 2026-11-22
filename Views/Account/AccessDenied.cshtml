@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "غير مصرح بالدخول";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="bg-white p-5 rounded-4 shadow-sm text-center">
+            <i class="fa-solid fa-lock fa-4x text-danger mb-4"></i>
+            <h3 class="fw-bold mb-3">غير مصرح لك بالدخول</h3>
+            <p class="text-muted mb-4">
+                هذا الحساب ليس حساب مدير نظام. منطقة الإدارة مخصصة للحسابات المُعيّنة فقط،
+                ولا يمكن فتح صفحاتها بكتابة الرابط مباشرة.
+            </p>
+            <div class="d-flex justify-content-center gap-2">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-house ms-1"></i> العودة للرئيسية
+                </a>
+                <a asp-controller="Account" asp-action="Profile" class="btn btn-emerald">
+                    <i class="fa-solid fa-user ms-1"></i> حسابي
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @await Html.PartialAsync("_ThemeInitializer")
     <title>@ViewData["Title"] - سَلِّفني | Salefny</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
             :root {
                 --primary-color: #0d9488;
@@ -89,6 +90,7 @@
                 font-size: 0.85rem;
             }
     </style>
+    @await Html.PartialAsync("_ThemeStyles")
 </head>
 <body>
     <nav class="navbar navbar-custom sticky-top">
@@ -100,15 +102,31 @@
 
             <div class="d-none d-md-flex align-items-center gap-2">
                 <a asp-controller="Items" asp-action="Index" class="nav-pill-custom active"><i class="fa-solid fa-store ms-1"></i> السوق والأغراض</a>
-                <a asp-controller="Disputes" asp-action="InspectionStudio" class="nav-pill-custom"><i class="fa-solid fa-cube ms-1"></i> الفحص سداسي الزوايا</a>
                 <a asp-controller="Home" asp-action="EscrowPolicy" class="nav-pill-custom"><i class="fa-solid fa-scale-balanced ms-1"></i> سياسة حل النزاعات والضمان</a>
             </div>
 
             <div class="d-flex align-items-center gap-2">
+                @await Html.PartialAsync("_ThemeToggle")
                 @if (User.Identity.IsAuthenticated)
                 {
+                    @if (User.IsInRole(AppRoles.Admin) || User.IsInRole(AppRoles.SuperAdmin))
+                    {
+                        <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-dark btn-sm"><i class="fa-solid fa-sliders ms-1"></i> لوحة التحكم</a>
+                    }
                     <a asp-controller="Account" asp-action="Profile" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-user ms-1"></i> حسابي</a>
-                    <a asp-controller="Items" asp-action="Create" class="btn btn-emerald">+ تأجير غرضك</a>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-outline-danger btn-sm" title="تسجيل الخروج">
+                            <i class="fa-solid fa-right-from-bracket ms-1"></i> تسجيل الخروج
+                        </button>
+                    </form>
+                    @if (User.IsInRole(AppRoles.Owner))
+                    {
+                        <a asp-controller="Items" asp-action="Create" class="btn btn-emerald">+ تأجير غرضك</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="OwnerRequest" class="btn btn-outline-success btn-sm"><i class="fa-solid fa-store ms-1"></i> كن مالكاً</a>
+                    }
                 }
                 else
                 {
@@ -125,6 +143,11 @@
 
     <footer class="bg-white border-top py-4 mt-5">
         <div class="container text-center text-muted small">
+            <p class="mb-2">
+                <a asp-controller="Home" asp-action="About" class="text-decoration-none text-muted mx-2">عن سَلِّفني</a>
+                <a asp-controller="Home" asp-action="Contact" class="text-decoration-none text-muted mx-2">اتصل بنا</a>
+                <a asp-controller="Home" asp-action="Terms" class="text-decoration-none text-muted mx-2">الشروط والأحكام</a>
+            </p>
             <p class="mb-1">&copy; 2026 سَلِّفني (Salefny) - مشروع تخرج DEPI. جميع الحقوق محفوظة.</p>
             <p class="mb-0">منصة تأجير الأغراض والأدوات بالتعاون مع وزارة الاتصالات وتكنولوجيا المعلومات.</p>
         </div>

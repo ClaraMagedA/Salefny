@@ -1,0 +1,154 @@
+@model SalefnyMVC.Models.Entities.ApplicationUser
+@{
+    ViewData["Title"] = "الملف الشخصي - " + Model.FullName;
+    var listings = ViewBag.Listings as List<Item> ?? new List<Item>();
+    var reviews = ViewBag.Reviews as List<Review> ?? new List<Review>();
+    var isOwnProfile = ViewBag.IsOwnProfile is bool own && own;
+    var average = Model.AverageRating > 0 ? Model.AverageRating : Model.TrustRating;
+    var filledStars = (int)Math.Round(Math.Clamp(average, 0, 5), MidpointRounding.AwayFromZero);
+}
+
+<div class="bg-white p-4 p-md-5 rounded-4 shadow-sm">
+    <div class="d-flex align-items-center gap-3 flex-wrap mb-4">
+        @if (!string.IsNullOrWhiteSpace(Model.ProfileImagePath))
+        {
+            <img src="@Model.ProfileImagePath" alt="@Model.FullName" class="rounded-circle border"
+                 style="width:72px;height:72px;object-fit:cover" />
+        }
+        else
+        {
+            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:72px;height:72px;font-size:1.8rem">
+                <i class="fa-solid fa-user"></i>
+            </div>
+        }
+        <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h4 class="fw-bold mb-0">@Model.FullName</h4>
+                @if (Model.IsVerified)
+                {
+                    <span class="badge-verified"><i class="fa-solid fa-circle-check ms-1"></i> حساب موثق (eKYC)</span>
+                }
+                else
+                {
+                    <span class="badge bg-warning text-dark"><i class="fa-solid fa-circle-exclamation ms-1"></i> حساب غير موثق</span>
+                }
+            </div>
+            <span class="text-muted small">
+                <i class="fa-solid fa-location-dot ms-1"></i> @Model.City
+            </span>
+        </div>
+        <div class="ms-auto">
+            @if (isOwnProfile)
+            {
+                <a asp-action="Profile" class="btn btn-outline-secondary btn-sm">
+                    <i class="fa-solid fa-id-card ms-1"></i> حسابي
+                </a>
+            }
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-success btn-sm">
+                <i class="fa-solid fa-arrow-right ms-1"></i> الرئيسية
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] is string success)
+    {
+        <div class="alert alert-success small"><i class="fa-solid fa-circle-check ms-1"></i> @success</div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <span class="text-muted small d-block">تقييم الثقة</span>
+                @if (average <= 0)
+                {
+                    <span class="fw-bold text-muted"><i class="fa-solid fa-star ms-1"></i> لا يوجد تقييم بعد</span>
+                }
+                else
+                {
+                    <span class="fw-bold" dir="ltr">
+                        @for (var s = 1; s <= 5; s++)
+                        {
+                            <i class="fa-solid fa-star @(s <= filledStars ? "text-warning" : "text-secondary")"></i>
+                        }
+                        <span class="small ms-1">@average.ToString("0.0", CultureInfo.InvariantCulture) / 5.0</span>
+                    </span>
+                }
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="border rounded-3 p-3 h-100">
+                <span class="text-muted small d-block">الأغراض المعروضة حالياً</span>
+                <strong class="fs-5 text-success">@listings.Count غرض</strong>
+            </div>
+        </div>
+    </div>
+
+    @if (isOwnProfile)
+    {
+        <div class="alert alert-light border small">
+            <i class="fa-solid fa-lock ms-1"></i> بياناتك أنت فقط:
+            <span dir="ltr">@Model.Email</span>
+            @if (!string.IsNullOrWhiteSpace(Model.PhoneNumber))
+            {
+                <span class="mt-1 d-block" dir="ltr">@Model.PhoneNumber</span>
+            }
+        </div>
+    }
+
+    <h6 class="fw-bold mb-3"><i class="fa-solid fa-store text-success ms-2"></i> الأغراض النشطة</h6>
+    @if (!listings.Any())
+    {
+        <p class="text-muted small">لا توجد أغراض معروضة حالياً.</p>
+    }
+    else
+    {
+        <div class="row g-3 mb-4">
+            @foreach (var item in listings)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="border rounded-3 p-3 h-100">
+                        <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id" class="fw-bold text-decoration-none">
+                            @item.Title
+                        </a>
+                        <div class="small text-muted mt-1">@item.City — @item.PricePerDay.ToString("N0") ج.م / يوم</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <h6 class="fw-bold mb-3"><i class="fa-solid fa-star text-success ms-2"></i> التقييمات المستلمة (@reviews.Count)</h6>
+    @if (!reviews.Any())
+    {
+        <p class="text-muted small mb-0">لا توجد تقييمات بعد.</p>
+    }
+    else
+    {
+        <div class="d-grid gap-2">
+            @foreach (var review in reviews)
+            {
+                <div class="border rounded-3 p-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <strong class="small">@review.Reviewer?.FullName</strong>
+                        <span dir="ltr" class="small text-warning">
+                            @for (var s = 1; s <= 5; s++)
+                            {
+                                <i class="fa-solid fa-star @(s <= review.Rating ? "text-warning" : "text-secondary")"></i>
+                            }
+                        </span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(review.Comment))
+                    {
+                        <p class="text-muted small mb-1 mt-2">@review.Comment</p>
+                    }
+                    <span class="text-muted small">@review.CreatedAt.ToString("d MMM yyyy")</span>
+                    @if (review.Item != null)
+                    {
+                        <span class="text-muted small d-block">الغرض: @review.Item.Title</span>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

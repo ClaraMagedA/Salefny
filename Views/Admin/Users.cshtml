@@ -1,34 +1,134 @@
-﻿@{
-    Layout = "_Layout";
+﻿@model AdminUsersViewModel
+@{
+    Layout = "_AdminLayout";
     ViewData["Title"] = "إدارة المستخدمين والصلاحيات";
 }
 
+@if (TempData["AdminMessage"] is string message)
+{
+    <div class="alert alert-success small"><i class="fa-solid fa-circle-check ms-1"></i> @message</div>
+}
+@if (TempData["AdminError"] is string error)
+{
+    <div class="alert alert-danger small"><i class="fa-solid fa-triangle-exclamation ms-1"></i> @error</div>
+}
+
 <div class="bg-white p-4 rounded-4 shadow-sm">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h5 class="fw-bold mb-0"><i class="fa-solid fa-users-gear text-success ms-2"></i> إدارة المستخدمين وحظر الحسابات</h5>
-        <input type="text" class="form-control form-control-sm w-25" placeholder="بحث بالبريد أو الاسم...">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-users-gear text-success ms-2"></i> إدارة المستخدمين وحظر الحسابات</h5>
+            <span class="text-muted small">إيقاف الحساب يلغي حجوزاته المفتوحة ويمنع تسجيل الدخول حتى إعادة التفعيل.</span>
+        </div>
+        <span class="badge bg-secondary">المعروض: @Model.Users.Count.ToString("N0")</span>
     </div>
 
-    <table class="table table-hover align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>المستخدم</th>
-                <th>البريد الإلكتروني</th>
-                <th>المدينة</th>
-                <th>حالة التوثيق</th>
-                <th>الحالة</th>
-                <th>الإجراء</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><strong>كريم محمد السيد</strong></td>
-                <td>karim@salefny.com</td>
-                <td>القاهرة</td>
-                <td><span class="badge bg-success">موثق eKYC</span></td>
-                <td><span class="badge bg-success">نشط</span></td>
-                <td><button class="btn btn-outline-danger btn-sm">حظر المستخدم</button></td>
-            </tr>
-        </tbody>
-    </table>
+    <form method="get" asp-action="Users" class="row g-2 mb-4">
+        <div class="col-md-6 col-lg-4">
+            <input type="text" name="search" value="@Model.Search" class="form-control form-control-sm" placeholder="بحث بالبريد الإلكتروني أو الاسم...">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-emerald btn-sm"><i class="fa-solid fa-magnifying-glass ms-1"></i> بحث</button>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(Model.Search))
+        {
+            <div class="col-auto">
+                <a asp-action="Users" class="btn btn-outline-secondary btn-sm">مسح البحث</a>
+            </div>
+        }
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>المستخدم</th>
+                    <th>البريد الإلكتروني</th>
+                    <th>المدينة</th>
+                    <th>الصلاحيات</th>
+                    <th>التوثيق</th>
+                    <th>الإحصاءات</th>
+                    <th>الحالة</th>
+                    <th>الإجراء</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Users.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted small py-4">لا يوجد مستخدمون مطابقون للبحث.</td>
+                    </tr>
+                }
+                @foreach (var user in Model.Users)
+                {
+                    <tr>
+                        <td><strong>@user.FullName</strong></td>
+                        <td dir="ltr" class="small">@user.Email</td>
+                        <td class="small">@user.City</td>
+                        <td>
+                            @foreach (var role in user.Roles)
+                            {
+                                <span class="badge bg-secondary">@role</span>
+                            }
+                            @if (user.IsSelf)
+                            {
+                                <span class="badge bg-dark">حسابك</span>
+                            }
+                        </td>
+                        <td>
+                            @if (user.IsVerified)
+                            {
+                                <span class="badge bg-success">موثّق</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">غير موثّق</span>
+                            }
+                        </td>
+                        <td class="small">
+                            <span class="d-block">إعلانات: @user.ListingsCount.ToString("N0")</span>
+                            <span class="d-block">حجوزات: @user.BookingsCount.ToString("N0")</span>
+                        </td>
+                        <td>
+                            @if (user.IsActive)
+                            {
+                                <span class="badge bg-success">نشط</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">موقوف</span>
+                            }
+                        </td>
+                        <td>
+                            @if (user.CanSuspend)
+                            {
+                                @if (user.IsActive)
+                                {
+                                    <form asp-action="SuspendUser" method="post">
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                onclick="return confirm('سيتم إيقاف الحساب وإلغاء حجوزاته المفتوحة. هل تريد المتابعة؟');">
+                                            <i class="fa-solid fa-user-slash ms-1"></i> إيقاف
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="ActivateUser" method="post">
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="fa-solid fa-user-check ms-1"></i> تفعيل
+                                        </button>
+                                    </form>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted small">محمي</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>

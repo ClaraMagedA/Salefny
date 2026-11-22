@@ -16,8 +16,19 @@ namespace SalefnyMVC.Models.Entities
         [ForeignKey("UserId")]
         public virtual ApplicationUser User { get; set; }
 
+        // NationalId or Passport, as captured from the uploaded document photo.
         [Required]
-        [StringLength(14, MinimumLength = 14, ErrorMessage = "الرقم القومي يجب أن يكون 14 رقماً")]
+        [MaxLength(20)]
+        public string DocumentType { get; set; } = "NationalId";
+
+        // Name read from the document; server-checked against ApplicationUser.FullName.
+        [Required]
+        [MaxLength(100)]
+        public string DocumentHolderName { get; set; } = string.Empty;
+
+        // Holds either a 14-digit National ID or a passport number.
+        [Required]
+        [MaxLength(50)]
         public string NationalIdNumber { get; set; }
 
         [Required]
@@ -30,6 +41,13 @@ namespace SalefnyMVC.Models.Entities
         public string SelfieImagePath { get; set; }
 
         public VerificationStatus Status { get; set; } = VerificationStatus.Pending;
+
+        [MaxLength(500)]
+        public string? AdminNote { get; set; }
+
+        public string? ReviewedByAdminId { get; set; }
+
+        public DateTime? ReviewedAt { get; set; }
 
         public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
     }

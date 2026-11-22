@@ -1,0 +1,180 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}
+
+/* Account section navigation */
+.account-nav-tabs {
+  border-bottom: 2px solid #e2e8f0;
+  display: flex;
+  gap: 20px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.account-nav-link {
+  text-decoration: none;
+  color: #64748b;
+  font-weight: 700;
+  padding-bottom: 12px;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+  .account-nav-link:hover {
+    color: var(--primary-color);
+  }
+
+  .account-nav-link.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+  }
+
+/* Theme toggle button */
+.theme-toggle {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  line-height: 1;
+}
+
+/* Dark mode overrides for the custom Salefny styling */
+[data-bs-theme="dark"] body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .bg-white,
+[data-bs-theme="dark"] .bg-light {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .navbar-custom {
+  background-color: #111827 !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .brand-logo {
+  color: #5eead4;
+}
+
+[data-bs-theme="dark"] .nav-pill-custom {
+  background-color: #334155;
+  color: #cbd5e1;
+}
+
+[data-bs-theme="dark"] .nav-pill-custom:hover,
+[data-bs-theme="dark"] .nav-pill-custom.active {
+  background-color: #0f766e;
+  color: #fff;
+}
+
+[data-bs-theme="dark"] .badge-verified {
+  background-color: #134e4a;
+  color: #99f6e4;
+}
+
+[data-bs-theme="dark"] .badge-warning-custom {
+  background-color: #713f12;
+  color: #fde68a;
+}
+
+[data-bs-theme="dark"] .text-muted {
+  color: #94a3b8 !important;
+}
+
+[data-bs-theme="dark"] .text-dark:not(.badge) {
+  color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .border,
+[data-bs-theme="dark"] .border-start,
+[data-bs-theme="dark"] .account-nav-tabs {
+  border-color: #334155 !important;
+}
+
+[data-bs-theme="dark"] .account-nav-link {
+  color: #94a3b8;
+}
+
+[data-bs-theme="dark"] .account-nav-link:hover,
+[data-bs-theme="dark"] .account-nav-link.active {
+  color: #5eead4;
+  border-bottom-color: #5eead4;
+}
+
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select {
+  background-color: #0f172a;
+  color: #e2e8f0;
+  border-color: #475569;
+}
+
+[data-bs-theme="dark"] .form-control::placeholder {
+  color: #64748b;
+}
+
+[data-bs-theme="dark"] .table-light {
+  --bs-table-bg: #1e293b;
+  --bs-table-color: #e2e8f0;
+  border-color: #334155;
+}
+
+[data-bs-theme="dark"] footer {
+  background-color: #111827 !important;
+  color: #94a3b8;
+}
+
+[data-bs-theme="dark"] .admin-sidebar {
+  background: linear-gradient(180deg, #020617, #0f172a);
+}
+
+[data-bs-theme="dark"] .admin-topbar {
+  background-color: #111827 !important;
+  border-bottom-color: #334155;
+}
+
+[data-bs-theme="dark"] .admin-page-title {
+  color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .admin-user {
+  color: #94a3b8;
+}
+
+[data-bs-theme="dark"] .admin-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}

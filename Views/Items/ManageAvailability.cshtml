@@ -1,0 +1,142 @@
+@model Item
+@{
+    ViewData["Title"] = "إدارة توفر الغرض";
+    var blocks = ViewBag.AvailabilityBlocks as IEnumerable<AvailabilityBlock> ?? Enumerable.Empty<AvailabilityBlock>();
+    var activeBookings = ViewBag.ActiveBookings as IEnumerable<Booking> ?? Enumerable.Empty<Booking>();
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0"><i class="fa-solid fa-calendar-days text-success ms-2"></i> إدارة توفر الغرض</h4>
+        <a asp-controller="Account" asp-action="MyListings" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-arrow-right ms-1"></i> العودة لمنتجاتي
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success small">
+            <i class="fa-solid fa-circle-check ms-1"></i> @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger small">
+            <i class="fa-solid fa-circle-exclamation ms-1"></i> @TempData["Error"]
+        </div>
+    }
+
+    <div class="bg-light rounded-3 p-3 mb-4 d-flex align-items-center gap-3">
+        <div class="bg-white rounded p-2 text-center" style="width:48px;height:48px;">
+            <i class="fa-solid fa-box text-success"></i>
+        </div>
+        <div>
+            <strong>@Model.Title</strong>
+            <span class="text-muted small d-block">المدينة: @Model.City — السعر: @Model.PricePerDay.ToString("N0") ج.م / يوم</span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="border rounded-4 p-4 h-100">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-plus text-success ms-1"></i> إضافة فترة غير متاحة</h5>
+                <p class="text-muted small mb-3">
+                    حدد نافذة زمنية لا تريد تأجير الغرض خلالها. لا يمكن أن تتداخل الفترة مع فترة أخرى أو مع حجز مؤكد للعميل.
+                </p>
+                <form asp-action="AddBlock" asp-route-itemId="@Model.Id" method="post">
+                    <div class="mb-3">
+                        <label for="startDate" class="form-label small fw-bold">تاريخ البداية</label>
+                        <input type="date" id="startDate" name="startDate" class="form-control"
+                               value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")"
+                               min="@DateTime.Today.ToString("yyyy-MM-dd")" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="endDate" class="form-label small fw-bold">تاريخ النهاية (شامل)</label>
+                        <input type="date" id="endDate" name="endDate" class="form-control"
+                               value="@DateTime.Today.AddDays(3).ToString("yyyy-MM-dd")"
+                               min="@DateTime.Today.ToString("yyyy-MM-dd")" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reason" class="form-label small fw-bold">السبب (اختياري)</label>
+                        <input type="text" id="reason" name="reason" class="form-control" maxlength="150"
+                               placeholder="مثال: صيانة، سفر، استخدام شخصي">
+                    </div>
+                    <button type="submit" class="btn btn-emerald w-100">
+                        <i class="fa-solid fa-calendar-plus ms-1"></i> حظر هذه الفترة
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="border rounded-4 p-4 h-100">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-list-check text-success ms-1"></i> الفترات المحجوزة من قِبل المالك</h5>
+                @if (!blocks.Any())
+                {
+                    <p class="text-muted small mb-0">لا توجد فترات محظورة حالياً.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>من</th>
+                                    <th>إلى</th>
+                                    <th>النوع</th>
+                                    <th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var block in blocks)
+                                {
+                                    <tr>
+                                        <td>@block.StartDate.ToString("dd/MM/yyyy")</td>
+                                        <td>@block.EndDate.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            @if (block.IsBooked)
+                                            {
+                                                <span class="badge bg-danger">حجز مؤكد</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark">حظر من المالك</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <form asp-action="RemoveBlock" asp-route-itemId="@Model.Id" asp-route-blockId="@block.Id" method="post"
+                                                  onsubmit="return confirm('هل تريد إزالة هذه الفترة من التوفر؟');">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                    <i class="fa-solid fa-trash ms-1"></i> إزالة
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (activeBookings.Any())
+    {
+        <hr class="my-4">
+        <div class="bg-light rounded-4 p-4">
+            <h6 class="fw-bold mb-3"><i class="fa-solid fa-calendar-check text-success ms-1"></i> حجوزات عملاء مؤثرة على التوفر</h6>
+            <p class="text-muted small mb-2">لا يمكن حظر هذه التواريخ لأنها مرتبطة بحجوزات مؤكدة أو نشطة.</p>
+            <ul class="mb-0 small text-muted">
+                @foreach (var booking in activeBookings)
+                {
+                    <li class="mb-1">
+                        <i class="fa-solid fa-ban text-danger ms-1"></i>
+                        من @booking.StartDate.ToString("dd/MM/yyyy") إلى @booking.EndDate.ToString("dd/MM/yyyy")
+                        <span class="badge bg-secondary">@booking.Status</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+</div>

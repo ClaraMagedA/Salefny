@@ -268,3 +268,9 @@ Salefny/
 # Salefny
 
 Need It? Rent It. Return It.
+
+---
+
+## Current implementation
+
+The working ASP.NET Core MVC application is included in this repository. See [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) for local setup, migrations, tests, and the end-to-end smoke test, and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the current layer structure.

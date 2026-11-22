@@ -1,78 +1,224 @@
-﻿@{
-    Layout = "_Layout";
+﻿@model AdminDashboardViewModel
+@{
+    Layout = "_AdminLayout";
     ViewData["Title"] = "لوحة تحكم سَلِّفني - النظرة العامة";
+    var active = ViewData["AdminActive"]?.ToString();
+}
+
+@functions {
+    private string BookingStatusLabel(BookingStatus status) => status switch
+    {
+        BookingStatus.Pending => "قيد الانتظار",
+        BookingStatus.Approved => "موافق عليه",
+        BookingStatus.Active => "جارٍ",
+        BookingStatus.Completed => "مكتمل",
+        BookingStatus.Cancelled => "ملغي",
+        BookingStatus.Rejected => "مرفوض",
+        BookingStatus.Disputed => "مُتنازع عليه",
+        _ => status.ToString()
+    };
+}
+
+@if (TempData["AdminMessage"] is string message)
+{
+    <div class="alert alert-success small"><i class="fa-solid fa-circle-check ms-1"></i> @message</div>
+}
+@if (TempData["AdminError"] is string error)
+{
+    <div class="alert alert-danger small"><i class="fa-solid fa-triangle-exclamation ms-1"></i> @error</div>
 }
 
 <!-- Admin Top Navigation Bar -->
-<div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm">
+<div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm flex-wrap gap-3">
     <div class="d-flex align-items-center gap-3">
         <span class="fs-4 fw-bold text-success"><i class="fa-solid fa-sliders ms-2"></i> لوحة تحكم سَلِّفني</span>
-        <span class="text-muted border-start ps-3">مسؤول النظام: <strong>كلارا ماجد</strong></span>
+        <span class="text-muted border-start ps-3">مسؤول النظام: <strong dir="ltr">@User.Identity?.Name</strong></span>
     </div>
-    <div class="nav nav-pills gap-2">
-        <a asp-action="Dashboard" class="nav-link active bg-emerald text-white"><i class="fa-solid fa-chart-line ms-1"></i> النظرة العامة</a>
-        <a asp-action="Verifications" class="nav-link bg-light text-dark"><i class="fa-solid fa-address-card ms-1"></i> توثيق الهوية (eKYC) <span class="badge bg-warning text-dark">12</span></a>
-        <a asp-action="Disputes" class="nav-link bg-light text-dark"><i class="fa-solid fa-triangle-exclamation ms-1"></i> منازعات الفحص <span class="badge bg-danger">3</span></a>
-        <a asp-action="EscrowLedger" class="nav-link bg-light text-dark"><i class="fa-solid fa-vault ms-1"></i> دفتر الضمان (Escrow)</a>
+    <div class="nav nav-pills gap-2 flex-wrap">
+        <a asp-action="Dashboard" class="nav-link @(active == "Dashboard" ? "active bg-emerald text-white" : "bg-light text-dark")"><i class="fa-solid fa-chart-line ms-1"></i> النظرة العامة</a>
+        <a asp-action="Verifications" class="nav-link @(active == "Verifications" ? "active bg-emerald text-white" : "bg-light text-dark")"><i class="fa-solid fa-address-card ms-1"></i> توثيق الهوية <span class="badge bg-warning text-dark">@Model.PendingVerificationsCount</span></a>
+        <a asp-action="OwnerRequests" class="nav-link @(active == "OwnerRequests" ? "active bg-emerald text-white" : "bg-light text-dark")"><i class="fa-solid fa-store ms-1"></i> طلبات المالكين <span class="badge bg-warning text-dark">@Model.PendingOwnerRequests</span></a>
+        <a asp-action="ListingReviews" class="nav-link @(active == "ListingReviews" ? "active bg-emerald text-white" : "bg-light text-dark")"><i class="fa-solid fa-clipboard-check ms-1"></i> مراجعة الأغراض <span class="badge bg-warning text-dark">@Model.PendingListings</span></a>
+        <a asp-action="Categories" class="nav-link @(active == "Categories" ? "active bg-emerald text-white" : "bg-light text-dark")"><i class="fa-solid fa-layer-group ms-1"></i> التصنيفات</a>
+        <a asp-action="Users" class="nav-link @(active == "Users" ? "active bg-emerald text-white" : "bg-light text-dark")"><i class="fa-solid fa-users-gear ms-1"></i> المستخدمون</a>
+        <a asp-action="Disputes" class="nav-link @(active == "Disputes" ? "active bg-emerald text-white" : "bg-light text-dark")"><i class="fa-solid fa-triangle-exclamation ms-1"></i> المنازعات <span class="badge bg-danger">@Model.ActiveDisputesCount</span></a>
+        <a asp-action="EscrowLedger" class="nav-link @(active == "EscrowLedger" ? "active bg-emerald text-white" : "bg-light text-dark")"><i class="fa-solid fa-vault ms-1"></i> دفتر الضمان</a>
+        @if (User.IsInRole(AppRoles.SuperAdmin))
+        {
+            <a asp-action="ManageAdmins" class="nav-link @(active == "ManageAdmins" ? "active bg-emerald text-white" : "bg-light text-dark")"><i class="fa-solid fa-user-shield ms-1"></i> إدارة المدراء</a>
+        }
     </div>
 </div>
 
-<!-- Admin KPI Summary Cards -->
+<!-- Database-backed KPI cards -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="bg-white p-3 rounded-4 shadow-sm border">
-            <span class="text-muted small d-block">إجمالي الضمانات المحجوزة</span>
-            <h4 class="fw-bold text-dark mt-1">148,500 ج.م</h4>
-            <span class="text-success small fw-bold">+14% مقارنة بالأسبوع الماضي</span>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="bg-white p-3 rounded-4 shadow-sm border h-100">
+            <span class="text-muted small d-block">إجمالي المستخدمين</span>
+            <h4 class="fw-bold text-dark mt-1 mb-0">@Model.TotalUsers.ToString("N0")</h4>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="bg-white p-3 rounded-4 shadow-sm border">
-            <span class="text-muted small d-block">طلبات توثيق معلقة</span>
-            <h4 class="fw-bold text-warning mt-1">12 مستخدماً</h4>
-            <span class="text-muted small">متوسط وقت المراجعة: 18 دقيقة</span>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="bg-white p-3 rounded-4 shadow-sm border h-100">
+            <span class="text-muted small d-block">المستخدمون الموثّقون</span>
+            <h4 class="fw-bold text-success mt-1 mb-0">@Model.VerifiedUsers.ToString("N0")</h4>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="bg-white p-3 rounded-4 shadow-sm border">
-            <span class="text-muted small d-block">منازعات فحص نشطة</span>
-            <h4 class="fw-bold text-danger mt-1">3 حالات</h4>
-            <span class="text-danger small">تتطلب فحساً بصرياً</span>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="bg-white p-3 rounded-4 shadow-sm border h-100">
+            <span class="text-muted small d-block">المالكون</span>
+            <h4 class="fw-bold text-primary mt-1 mb-0">@Model.Owners.ToString("N0")</h4>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="bg-white p-3 rounded-4 shadow-sm border">
-            <span class="text-muted small d-block">أرباح عمولة المنصة</span>
-            <h4 class="fw-bold text-emerald mt-1">11,880 ج.م</h4>
-            <span class="text-muted small">نسبة العمولة 8%</span>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="bg-white p-3 rounded-4 shadow-sm border h-100">
+            <span class="text-muted small d-block">إعلانات نشطة</span>
+            <h4 class="fw-bold text-success mt-1 mb-0">@Model.ActiveListings.ToString("N0")</h4>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="bg-white p-3 rounded-4 shadow-sm border h-100">
+            <span class="text-muted small d-block">إعلانات قيد المراجعة</span>
+            <h4 class="fw-bold text-warning mt-1 mb-0">@Model.PendingListings.ToString("N0")</h4>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="bg-white p-3 rounded-4 shadow-sm border h-100">
+            <span class="text-muted small d-block">طلبات مالكين معلقة</span>
+            <h4 class="fw-bold text-warning mt-1 mb-0">@Model.PendingOwnerRequests.ToString("N0")</h4>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-3">
+        <div class="bg-white p-3 rounded-4 shadow-sm border h-100">
+            <span class="text-muted small d-block">حجوزات هذا الشهر</span>
+            <h4 class="fw-bold text-dark mt-1 mb-0">@Model.ThisMonthBookings.ToString("N0")</h4>
+            <span class="text-muted small">حسب تاريخ بداية الحجز</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-3">
+        <div class="bg-white p-3 rounded-4 shadow-sm border h-100">
+            <span class="text-muted small d-block">تقدير الإيرادات</span>
+            <h4 class="fw-bold text-success mt-1 mb-0">@Model.RevenueEstimate.ToString("N0") <small class="fs-6">ج.م</small></h4>
+            <span class="text-muted small">حجوزات موافق عليها / جارية / مكتملة</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-3">
+        <div class="bg-white p-3 rounded-4 shadow-sm border h-100">
+            <span class="text-muted small d-block">ضمانات محجوزة</span>
+            <h4 class="fw-bold text-dark mt-1 mb-0">@Model.EscrowHeld.ToString("N0") <small class="fs-6">ج.م</small></h4>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-3">
+        <div class="bg-white p-3 rounded-4 shadow-sm border h-100">
+            <span class="text-muted small d-block">ضمانات مجمدة</span>
+            <h4 class="fw-bold text-danger mt-1 mb-0">@Model.EscrowFrozen.ToString("N0") <small class="fs-6">ج.م</small></h4>
         </div>
     </div>
 </div>
 
-<!-- Quick Section Cards -->
+<div class="row g-4 mb-4">
+    <!-- Bookings per status -->
+    <div class="col-lg-4">
+        <div class="bg-white p-4 rounded-4 shadow-sm border h-100">
+            <h6 class="fw-bold mb-3"><i class="fa-solid fa-calendar-check text-success ms-2"></i> الحجوزات حسب الحالة</h6>
+            <div class="d-grid gap-3">
+                @foreach (BookingStatus status in Enum.GetValues<BookingStatus>())
+                {
+                    var count = Model.GetBookingCount(status);
+                    var max = Math.Max(1, Model.BookingsByStatus.Values.DefaultIfEmpty(0).Max());
+                    <div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>@BookingStatusLabel(status)</span>
+                            <strong>@count.ToString("N0")</strong>
+                        </div>
+                        <div class="progress" style="height:8px">
+                            <div class="progress-bar bg-primary" style="width:@(count * 100.0 / max)%"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Last six months bar chart -->
+    <div class="col-lg-8">
+        <div class="bg-white p-4 rounded-4 shadow-sm border h-100">
+            <h6 class="fw-bold mb-3"><i class="fa-solid fa-chart-column text-success ms-2"></i> الحجوزات خلال آخر 6 أشهر</h6>
+            <div class="d-flex align-items-end justify-content-around gap-2" style="height:210px; direction:ltr">
+                @foreach (var month in Model.BookingsPerMonth)
+                {
+                    var height = Math.Max(2, month.Count * 180.0 / Model.MaxMonthlyBookings);
+                    <div class="text-center flex-fill">
+                        <div class="small fw-bold mb-1">@month.Count</div>
+                        <div class="bg-success rounded-top mx-auto" style="width:70%; height:@height.ToString("F0")px"></div>
+                        <div class="small text-muted mt-2" dir="ltr">@month.Label</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row g-4">
-    <div class="col-md-4">
-        <div class="bg-white p-4 rounded-4 shadow-sm border text-center">
-            <i class="fa-solid fa-address-card fs-1 text-warning mb-3"></i>
-            <h5 class="fw-bold">نظام توثيق الهوية (eKYC)</h5>
-            <p class="text-muted small mb-3">مراجعة والتحقق من البطاقات الشخصية المصرية (14 رقم) ومطابقة الصور.</p>
-            <a asp-action="Verifications" class="btn btn-warning btn-sm w-100 fw-bold">12 في انتظار الموافقة</a>
+    <!-- Top categories -->
+    <div class="col-lg-6">
+        <div class="bg-white p-4 rounded-4 shadow-sm border h-100">
+            <h6 class="fw-bold mb-3"><i class="fa-solid fa-layer-group text-warning ms-2"></i> أكثر 5 تصنيفات حجزاً</h6>
+            @if (!Model.TopCategories.Any())
+            {
+                <div class="alert alert-info small mb-0">لا توجد حجوزات لعرض الإحصاءات.</div>
+            }
+            else
+            {
+                <div class="d-grid gap-3">
+                    @foreach (var category in Model.TopCategories)
+                    {
+                        <div>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>@category.CategoryName</span>
+                                <strong>@category.BookingCount.ToString("N0") حجز</strong>
+                            </div>
+                            <div class="progress" style="height:10px">
+                                <div class="progress-bar bg-warning" style="width:@(category.BookingCount * 100.0 / Model.MaxCategoryBookings)%"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="bg-white p-4 rounded-4 shadow-sm border text-center">
-            <i class="fa-solid fa-arrows-rotate fs-1 text-danger mb-3"></i>
-            <h5 class="fw-bold">مركز منازعات الفحص (6 زوايا)</h5>
-            <p class="text-muted small mb-3">مقارنة صور الاستلام بصور الإرجاع لحل مطالبات الأضرار والضمانات.</p>
-            <a asp-action="Disputes" class="btn btn-danger btn-sm w-100 fw-bold">3 حالات نشطة</a>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="bg-white p-4 rounded-4 shadow-sm border text-center">
-            <i class="fa-solid fa-vault fs-1 text-success mb-3"></i>
-            <h5 class="fw-bold">دفتر الضمان والمدفوعات</h5>
-            <p class="text-muted small mb-3">تتبع الودائع التأمينية، بوابات الدفع الإلكتروني (Paymob)، وتحويلات InstaPay.</p>
-            <a asp-action="EscrowLedger" class="btn btn-emerald btn-sm w-100 fw-bold">148,500 ج.م نشط</a>
+
+    <!-- Quick action cards -->
+    <div class="col-lg-6">
+        <div class="row g-3 h-100">
+            <div class="col-md-6">
+                <div class="bg-white p-3 rounded-4 shadow-sm border text-center h-100">
+                    <i class="fa-solid fa-address-card fs-2 text-warning mb-2"></i>
+                    <h6 class="fw-bold small mb-2">توثيق الهوية (eKYC)</h6>
+                    <a asp-action="Verifications" class="btn btn-warning btn-sm w-100 fw-bold">@Model.PendingVerificationsCount في انتظار المراجعة</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="bg-white p-3 rounded-4 shadow-sm border text-center h-100">
+                    <i class="fa-solid fa-triangle-exclamation fs-2 text-danger mb-2"></i>
+                    <h6 class="fw-bold small mb-2">منازعات الفحص</h6>
+                    <a asp-action="Disputes" class="btn btn-danger btn-sm w-100 fw-bold">@Model.ActiveDisputesCount حالة نشطة</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="bg-white p-3 rounded-4 shadow-sm border text-center h-100">
+                    <i class="fa-solid fa-layer-group fs-2 text-info mb-2"></i>
+                    <h6 class="fw-bold small mb-2">تصنيفات الأغراض</h6>
+                    <a asp-action="Categories" class="btn btn-outline-info btn-sm w-100 fw-bold">إدارة التصنيفات</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="bg-white p-3 rounded-4 shadow-sm border text-center h-100">
+                    <i class="fa-solid fa-vault fs-2 text-success mb-2"></i>
+                    <h6 class="fw-bold small mb-2">سجل الضمان</h6>
+                    <a asp-action="EscrowLedger" class="btn btn-emerald btn-sm w-100 fw-bold">@Model.EscrowHeld.ToString("N0") ج.م محجوز</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

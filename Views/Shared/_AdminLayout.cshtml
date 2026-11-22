@@ -1,0 +1,270 @@
+@inject SalefnyDbContext Db
+@{
+    var pendingOwnerRequests = User.Identity?.IsAuthenticated == true
+        ? await Db.OwnerRequests.CountAsync(r => r.Status == OwnerRequestStatus.Pending)
+        : 0;
+    var pendingListingReviews = User.Identity?.IsAuthenticated == true
+        ? await Db.Items.CountAsync(i => i.ApprovalStatus == ListingApprovalStatus.Pending)
+        : 0;
+    var pendingVerifications = User.Identity?.IsAuthenticated == true
+        ? await Db.IdentityVerifications.CountAsync(v => v.Status == VerificationStatus.Pending)
+        : 0;
+    var activeDisputes = User.Identity?.IsAuthenticated == true
+        ? await Db.DisputeLogs.CountAsync(d => !d.IsResolved)
+        : 0;
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @await Html.PartialAsync("_ThemeInitializer")
+    <title>@ViewData["Title"] - لوحة تحكم سَلِّفني</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        :root {
+            --admin-bg: #0b1220;
+            --admin-panel: #111c30;
+            --admin-accent: #14b8a6;
+            --admin-accent-dark: #0d9488;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .admin-shell {
+            min-height: 100vh;
+        }
+
+        .admin-sidebar {
+            width: 265px;
+            flex: 0 0 265px;
+            background: linear-gradient(180deg, var(--admin-bg), var(--admin-panel));
+            color: #cbd5e1;
+            padding: 24px 16px;
+        }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.35rem;
+            text-decoration: none;
+            padding: 8px 10px 22px;
+            border-bottom: 1px solid rgba(255,255,255,.1);
+            margin-bottom: 18px;
+        }
+
+        .admin-brand-badge {
+            background: var(--admin-accent);
+            color: #fff;
+            border-radius: 10px;
+            padding: 7px 10px;
+            font-size: 1.2rem;
+        }
+
+        .admin-nav-label {
+            font-size: .72rem;
+            letter-spacing: .5px;
+            color: #64748b;
+            padding: 0 12px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .admin-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            color: #cbd5e1;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: .92rem;
+            margin-bottom: 5px;
+            transition: all .15s ease;
+        }
+
+        .admin-link:hover {
+            background: rgba(255,255,255,.06);
+            color: #fff;
+        }
+
+        .admin-link.active {
+            background: var(--admin-accent);
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(20,184,166,.25);
+        }
+
+        .admin-link i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .admin-topbar {
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .admin-page-title {
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: #0f172a;
+        }
+
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: .85rem;
+            color: #64748b;
+        }
+
+        .admin-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--admin-accent-dark);
+            color: #fff;
+            display: grid;
+            place-items: center;
+        }
+
+        .bg-emerald {
+            background-color: var(--admin-accent-dark) !important;
+        }
+
+        .btn-emerald {
+            background-color: var(--admin-accent-dark);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            padding: 8px 16px;
+        }
+
+        .btn-emerald:hover {
+            background-color: var(--admin-accent);
+            color: #fff;
+        }
+
+        @@media (max-width: 767.98px) {
+            .admin-shell {
+                flex-direction: column;
+            }
+
+            .admin-sidebar {
+                width: 100%;
+                flex: 0 0 auto;
+            }
+
+            .admin-topbar {
+                padding: 12px 16px;
+            }
+        }
+    </style>
+    @await Html.PartialAsync("_ThemeStyles")
+</head>
+<body>
+    <div class="admin-shell d-flex">
+        <aside class="admin-sidebar">
+            <a asp-controller="Home" asp-action="Index" class="admin-brand">
+                <span class="admin-brand-badge"><i class="fa-solid fa-sliders"></i></span>
+                سَلِّفني / الإدارة
+            </a>
+
+            <div class="admin-nav-label">القائمة الرئيسية</div>
+            <a asp-controller="Admin" asp-action="Dashboard" class="admin-link @(ViewData["AdminActive"]?.ToString() == "Dashboard" ? "active" : "")">
+                <i class="fa-solid fa-chart-line"></i> النظرة العامة
+            </a>
+            <a asp-controller="Admin" asp-action="Verifications" class="admin-link @(ViewData["AdminActive"]?.ToString() == "Verifications" ? "active" : "")">
+                <i class="fa-solid fa-address-card"></i> توثيق الهوية
+                @if (pendingVerifications > 0)
+                {
+                    <span class="badge bg-warning text-dark ms-auto">@pendingVerifications</span>
+                }
+            </a>
+            <a asp-controller="Admin" asp-action="OwnerRequests" class="admin-link @(ViewData["AdminActive"]?.ToString() == "OwnerRequests" ? "active" : "")">
+                <i class="fa-solid fa-store"></i> طلبات المالكين
+                @if (pendingOwnerRequests > 0)
+                {
+                    <span class="badge bg-warning text-dark ms-auto">@pendingOwnerRequests</span>
+                }
+            </a>
+            <a asp-controller="Admin" asp-action="ListingReviews" class="admin-link @(ViewData["AdminActive"]?.ToString() == "ListingReviews" ? "active" : "")">
+                <i class="fa-solid fa-clipboard-check"></i> مراجعة الأغراض
+                @if (pendingListingReviews > 0)
+                {
+                    <span class="badge bg-warning text-dark ms-auto">@pendingListingReviews</span>
+                }
+            </a>
+            <a asp-controller="Admin" asp-action="Categories" class="admin-link @(ViewData["AdminActive"]?.ToString() == "Categories" ? "active" : "")">
+                <i class="fa-solid fa-layer-group"></i> التصنيفات
+            </a>
+            <a asp-controller="Admin" asp-action="Disputes" class="admin-link @(ViewData["AdminActive"]?.ToString() == "Disputes" ? "active" : "")">
+                <i class="fa-solid fa-triangle-exclamation"></i> منازعات الفحص
+                @if (activeDisputes > 0)
+                {
+                    <span class="badge bg-danger ms-auto">@activeDisputes</span>
+                }
+            </a>
+            <a asp-controller="Admin" asp-action="Users" class="admin-link @(ViewData["AdminActive"]?.ToString() == "Users" ? "active" : "")">
+                <i class="fa-solid fa-users-gear"></i> المستخدمون
+            </a>
+            @if (User.IsInRole(AppRoles.SuperAdmin))
+            {
+                <a asp-controller="Admin" asp-action="ManageAdmins" class="admin-link @(ViewData["AdminActive"]?.ToString() == "ManageAdmins" ? "active" : "")">
+                    <i class="fa-solid fa-user-shield"></i> إدارة المدراء
+                </a>
+            }
+            <a asp-controller="Admin" asp-action="EscrowLedger" class="admin-link @(ViewData["AdminActive"]?.ToString() == "EscrowLedger" ? "active" : "")">
+                <i class="fa-solid fa-vault"></i> دفتر الضمان
+            </a>
+
+            <div class="admin-nav-label mt-4">العودة</div>
+            <a asp-controller="Home" asp-action="Index" class="admin-link">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> موقع سَلِّفني
+            </a>
+        </aside>
+
+        <div class="flex-grow-1 min-w-0">
+            <header class="admin-topbar">
+                <div class="admin-page-title"><i class="fa-solid fa-shield-halved text-success ms-1"></i> @ViewData["Title"]</div>
+                <div class="d-flex align-items-center gap-2">
+                    @await Html.PartialAsync("_ThemeToggle")
+                    <div class="admin-user">
+                        <span class="admin-avatar"><i class="fa-solid fa-user-tie"></i></span>
+                        <span dir="ltr">@User.Identity?.Name</span>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline ms-2">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="fa-solid fa-right-from-bracket ms-1"></i> خروج
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </header>
+
+            <main class="container-fluid py-4 px-4">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

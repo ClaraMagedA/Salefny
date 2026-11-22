@@ -1,0 +1,109 @@
+@{
+    ViewData["Title"] = "سياسة حل النزاعات والضمان";
+}
+
+<style>
+    .policy-step {
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 20px;
+        height: 100%;
+        background: #fff;
+    }
+
+    .policy-step-number {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        margin-bottom: 12px;
+    }
+
+    .policy-rule {
+        border-right: 4px solid var(--primary-color);
+        background: #f8fafc;
+        border-radius: 0 12px 12px 0;
+        padding: 14px 18px;
+        margin-bottom: 12px;
+    }
+</style>
+
+<div class="bg-white p-4 p-md-5 rounded-4 shadow-sm mb-4">
+    <h3 class="fw-bold mb-3">
+        <i class="fa-solid fa-scale-balanced text-success ms-2"></i>
+        سياسة حل النزاعات والضمان (Escrow &amp; Dispute Policy)
+    </h3>
+    <p class="text-muted mb-0">
+        نلتزم في منصة سَلِّفني بحماية حقوق المؤجر والمستأجر على حد سواء. لذلك يتم احتجاز مبلغ الضمان
+        في حساب وسيط آمن (Escrow) ولا يُطلق إلا بعد اكتمال فحص الاستلام والتأكد من مطابقة الغرض
+        لصور التسليم المعتمدة بنظام الفحص سداسي الزوايا.
+    </p>
+</div>
+
+<div class="bg-white p-4 p-md-5 rounded-4 shadow-sm mb-4">
+    <h5 class="fw-bold mb-4"><i class="fa-solid fa-vault text-success ms-2"></i> كيف يعمل نظام الضمان؟</h5>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="policy-step">
+                <span class="policy-step-number">1</span>
+                <h6 class="fw-bold">حجز المبلغ</h6>
+                <p class="text-muted small mb-0">عند تأكيد الحجز يُحتجز مبلغ الإيجار والضمان في حساب وسيط عبر Paymob ولا يصل إلى المؤجر فوراً.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="policy-step">
+                <span class="policy-step-number">2</span>
+                <h6 class="fw-bold">التسليم والتوثيق</h6>
+                <p class="text-muted small mb-0">يُلتقط المؤجر 6 صور للغرض من زوايا مختلفة قبل التسليم، ويُطلب من المستأجر التقاط نفس الزوايا عند الاستلام.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="policy-step">
+                <span class="policy-step-number">3</span>
+                <h6 class="fw-bold">المطابقة والإطلاق</h6>
+                <p class="text-muted small mb-0">بعد انتهاء فترة الإيجار تُطابق الصور. عند التطابق يُحوَّل الإيجار للمؤجر وتُعاد الوديعة للمستأجر تلقائياً.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white p-4 p-md-5 rounded-4 shadow-sm mb-4">
+    <h5 class="fw-bold mb-4"><i class="fa-solid fa-file-circle-question text-success ms-2"></i> خطوات حل النزاع</h5>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="policy-rule">
+                <h6 class="fw-bold mb-1">1. فتح مطالبة</h6>
+                <p class="text-muted small mb-0">لدى المستأجر 24 ساعة من تاريخ الإرجاع لتسجيل مطالبة وإرفاق صور إضافية توضّح المطالبة.</p>
+            </div>
+            <div class="policy-rule">
+                <h6 class="fw-bold mb-1">2. مراجعة المؤجر</h6>
+                <p class="text-muted small mb-0">يُمنح المؤجر 48 ساعة للرد على المطالبة وتقديم صوره أو الاعتراض عليها.</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="policy-rule">
+                <h6 class="fw-bold mb-1">3. تدخل المنصة</h6>
+                <p class="text-muted small mb-0">يتولى فريق التحكيم مقارنة الصور واتخاذ القرار خلال 72 ساعة، مع إبقاء المبلغ محتجزاً لحين البت.</p>
+            </div>
+            <div class="policy-rule">
+                <h6 class="fw-bold mb-1">4. التنفيذ</h6>
+                <p class="text-muted small mb-0">يُنفَّذ القرار بتحويل جزء من الضمان للمؤجر أو إعادته كاملاً للمستأجر، ويُوثَّق في دفتر الضمان.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white p-4 p-md-5 rounded-4 shadow-sm mb-5">
+    <h5 class="fw-bold mb-3"><i class="fa-solid fa-circle-info text-success ms-2"></i> حالات استرداد الضمان</h5>
+    <ul class="text-muted small mb-4">
+        <li class="mb-2">يُعاد الضمان كاملاً إذا تطابقت صور الاستلام مع صور التسليم دون فروق جوهرية.</li>
+        <li class="mb-2">يُقتطع من الضمان قيمة الأضرار الموثقة بصور واضحة بعد مراجعة فريق التحكيم.</li>
+        <li class="mb-2">لا تُقبل المطالبات المقدمة بعد انقضاء 24 ساعة من الإرجاع أو غير المصحوبة بصور.</li>
+        <li class="mb-2">الاستخدام العادي للغرض لا يُعد ضرراً ولا يوجب أي خصم من الوديعة.</li>
+    </ul>
+</div>

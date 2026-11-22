@@ -1,5 +1,4 @@
-﻿using SalefnyMVC.Models.Entities;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SalefnyMVC.Models.Entities
@@ -12,8 +11,8 @@ namespace SalefnyMVC.Models.Entities
         [Range(1, 5)]
         public int Rating { get; set; }
 
-        [MaxLength(500)]
-        public string Comment { get; set; }
+        [MaxLength(1000)]
+        public string? Comment { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -21,12 +20,24 @@ namespace SalefnyMVC.Models.Entities
         public int BookingId { get; set; }
 
         [ForeignKey("BookingId")]
-        public virtual Booking Booking { get; set; }
+        public virtual Booking Booking { get; set; } = null!;
 
-        [Required]
-        public int ItemId { get; set; }
+        // Kept for item-detail queries; always copied from Booking.ItemId.
+        public int? ItemId { get; set; }
 
         [ForeignKey("ItemId")]
-        public virtual Item Item { get; set; }
+        public virtual Item? Item { get; set; }
+
+        [Required]
+        public string ReviewerId { get; set; } = string.Empty;
+
+        [ForeignKey("ReviewerId")]
+        public virtual ApplicationUser Reviewer { get; set; } = null!;
+
+        [Required]
+        public string RevieweeId { get; set; } = string.Empty;
+
+        [ForeignKey("RevieweeId")]
+        public virtual ApplicationUser Reviewee { get; set; } = null!;
     }
 }

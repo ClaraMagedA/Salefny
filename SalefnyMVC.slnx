@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SalefnyMVC.csproj" />
+  <Project Path="Tests/SalefnyMVC.Tests/SalefnyMVC.Tests.csproj" />
+</Solution>

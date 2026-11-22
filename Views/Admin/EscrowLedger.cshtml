@@ -1,15 +1,116 @@
-﻿@{
-    Layout = "_Layout";
-    ViewData["Title"] = "سجل ودائع الضمان وحركات Paymob";
+﻿@model AdminEscrowViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "سجل ودائع الضمان وحركات الضمان";
+}
+
+@functions {
+    private string TypeLabel(EscrowTransactionType type) => type switch
+    {
+        EscrowTransactionType.Hold => "حجز",
+        EscrowTransactionType.Release => "إرجاع",
+        EscrowTransactionType.Freeze => "تجميد",
+        EscrowTransactionType.Deduct => "خصم",
+        EscrowTransactionType.Refund => "استرداد",
+        _ => type.ToString()
+    };
+
+    private string TypeBadge(EscrowTransactionType type) => type switch
+    {
+        EscrowTransactionType.Hold => "bg-primary",
+        EscrowTransactionType.Freeze => "bg-warning text-dark",
+        EscrowTransactionType.Deduct => "bg-danger",
+        EscrowTransactionType.Refund => "bg-info text-dark",
+        _ => "bg-success"
+    };
+}
+
+@if (TempData["AdminMessage"] is string message)
+{
+    <div class="alert alert-success small"><i class="fa-solid fa-circle-check ms-1"></i> @message</div>
 }
 
 <div class="bg-white p-4 rounded-4 shadow-sm">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h5 class="fw-bold mb-1"><i class="fa-solid fa-vault text-success ms-2"></i> سجل ودائع الضمان وحركات Paymob</h5>
-            <span class="text-muted small">تتبع مباشر للودائع التأمينية المحجوزة في الضمان</span>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-vault text-success ms-2"></i> سجل حركات الضمان (Escrow)</h5>
+            <span class="text-muted small">كل حركة حجز أو إرجاع أو تجميد أو خصم موثّقة في قاعدة البيانات.</span>
         </div>
-        <button class="btn btn-emerald btn-sm"><i class="fa-solid fa-file-csv ms-1"></i> تصدير البيانات (CSV)</button>
+        <a asp-action="ExportEscrowCsv"
+           asp-route-bookingId="@Model.BookingIdFilter"
+           asp-route-type="@Model.TypeFilter"
+           class="btn btn-emerald btn-sm">
+            <i class="fa-solid fa-file-csv ms-1"></i> تصدير البيانات (CSV)
+        </a>
+    </div>
+
+    <form method="get" asp-action="EscrowLedger" class="row g-2 align-items-end mb-4">
+        <div class="col-md-4">
+            <label class="form-label small fw-bold">رقم الحجز</label>
+            <input type="text" name="bookingId" value="@Model.BookingIdFilter" class="form-control form-control-sm" placeholder="مثال: 12" dir="ltr">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small fw-bold">نوع الحركة</label>
+            <select name="type" class="form-select form-select-sm">
+                <option value="">— كل الحركات —</option>
+                @foreach (EscrowTransactionType type in Enum.GetValues<EscrowTransactionType>())
+                {
+                    if (Model.TypeFilter == type)
+                    {
+                        <option value="@type" selected>@TypeLabel(type)</option>
+                    }
+                    else
+                    {
+                        <option value="@type">@TypeLabel(type)</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-emerald btn-sm"><i class="fa-solid fa-filter ms-1"></i> تطبيق</button>
+        </div>
+        <div class="col-auto">
+            <a asp-action="EscrowLedger" class="btn btn-outline-secondary btn-sm">إعادة تعيين</a>
+        </div>
+    </form>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="border rounded-3 p-3 h-100">
+                <span class="small text-muted d-block">إجمالي الحركات</span>
+                <strong>@Model.Transactions.Count.ToString("N0")</strong>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="border rounded-3 p-3 h-100">
+                <span class="small text-muted d-block">إجمالي المبالغ</span>
+                <strong>@Model.TotalAmount.ToString("N2") ج.م</strong>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="border rounded-3 p-3 h-100">
+                <span class="small text-muted d-block">محجوز (Hold)</span>
+                <strong class="text-primary">@Model.HoldTotal.ToString("N2") ج.م</strong>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="border rounded-3 p-3 h-100">
+                <span class="small text-muted d-block">مجمد (Freeze)</span>
+                <strong class="text-warning">@Model.FreezeTotal.ToString("N2") ج.م</strong>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="border rounded-3 p-3 h-100">
+                <span class="small text-muted d-block">مخصوم (Deduct)</span>
+                <strong class="text-danger">@Model.DeductTotal.ToString("N2") ج.م</strong>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="border rounded-3 p-3 h-100">
+                <span class="small text-muted d-block">صافي المتبقي في الضمان</span>
+                <strong class="text-success">@Model.NetHeld.ToString("N2") ج.م</strong>
+            </div>
+        </div>
     </div>
 
     <div class="table-responsive">
@@ -17,30 +118,38 @@
             <thead class="table-light">
                 <tr>
                     <th>رقم المعاملة</th>
-                    <th>المنتج / عملية التأجير</th>
-                    <th>طريقة الدفع</th>
-                    <th>مبلغ الضمان</th>
-                    <th>عمولة المنصة (8%)</th>
-                    <th>حالة الحجز</th>
+                    <th>رقم الحجز</th>
+                    <th>الغرض</th>
+                    <th>المستأجر</th>
+                    <th>النوع</th>
+                    <th>المبلغ</th>
+                    <th>الملاحظة</th>
+                    <th>التاريخ</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td><code>#ESC-883921</code></td>
-                    <td>شنيور ماكيتا حفر بوش الاحترافي</td>
-                    <td><span class="badge bg-primary">بطاقة Paymob</span></td>
-                    <td><strong>1,500 ج.م</strong></td>
-                    <td>36 ج.م</td>
-                    <td><span class="badge bg-success">محجوز في الضمان</span></td>
-                </tr>
-                <tr>
-                    <td><code>#ESC-883922</code></td>
-                    <td>درون تصوير DJI Mavic Air 2S</td>
-                    <td><span class="badge bg-success">InstaPay فوري</span></td>
-                    <td><strong>5,000 ج.م</strong></td>
-                    <td>108 ج.م</td>
-                    <td><span class="badge bg-warning text-dark">مراجعة الاستلام</span></td>
-                </tr>
+                @if (!Model.Transactions.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted small py-4">لا توجد حركات ضمان مطابقة.</td>
+                    </tr>
+                }
+                @foreach (var tx in Model.Transactions)
+                {
+                    <tr>
+                        <td><code>#@tx.Id</code></td>
+                        <td><code>#@tx.BookingId</code></td>
+                        <td class="small">@(tx.Booking?.Item?.Title ?? "—")</td>
+                        <td class="small">
+                            @(tx.Booking?.Renter?.FullName ?? "—")
+                            <div class="text-muted" dir="ltr">@tx.Booking?.Renter?.Email</div>
+                        </td>
+                        <td><span class="badge @TypeBadge(tx.Type)">@TypeLabel(tx.Type)</span></td>
+                        <td><strong>@tx.Amount.ToString("N2") ج.م</strong></td>
+                        <td class="small text-muted">@(string.IsNullOrWhiteSpace(tx.Note) ? "—" : tx.Note)</td>
+                        <td class="small">@tx.CreatedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>

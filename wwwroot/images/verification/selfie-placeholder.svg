@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="320" viewBox="0 0 480 320">
+  <rect width="480" height="320" fill="#f1f5f9"/>
+  <rect x="40" y="40" width="400" height="240" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <circle cx="240" cy="140" r="52" fill="#e2e8f0"/>
+  <path d="M150 260 c0-52 40-82 90-82 s90 30 90 82" fill="#e2e8f0"/>
+  <text x="240" y="300" text-anchor="middle" font-family="Cairo, sans-serif" font-size="16" fill="#94a3b8">صورة السيلفي (عنصر تجريبي)</text>
+</svg>

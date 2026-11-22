@@ -1,0 +1,167 @@
+@model List<OwnerRequest>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "طلبات الترقية إلى مالك";
+}
+
+@if (TempData["AdminMessage"] is string message)
+{
+    <div class="alert alert-success small"><i class="fa-solid fa-circle-check ms-1"></i> @message</div>
+}
+@if (TempData["AdminError"] is string error)
+{
+    <div class="alert alert-danger small"><i class="fa-solid fa-triangle-exclamation ms-1"></i> @error</div>
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-store text-success ms-2"></i> طلبات الترقية إلى مالك</h5>
+            <span class="text-muted small">كل طلب يحتوي على منتج وصوره الست. الموافقة تمنح صلاحية المالك وتنشر المنتج بعد فحص الجودة.</span>
+        </div>
+        <span class="badge bg-warning text-dark">قيد المراجعة: @Model.Count(r => r.Status == OwnerRequestStatus.Pending)</span>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info small mb-0">لا توجد طلبات مالكة حتى الآن.</div>
+    }
+    else
+    {
+        <div class="d-grid gap-4">
+            @foreach (var request in Model)
+            {
+                var images = request.Images?.OrderBy(i => i.AngleIndex).ToList() ?? new List<OwnerRequestImage>();
+                var isPending = request.Status == OwnerRequestStatus.Pending;
+
+                <div class="border rounded-4 p-3 p-md-4">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                        <div>
+                            <h6 class="fw-bold mb-1">@request.ProductTitle</h6>
+                            <div class="text-muted small">
+                                @request.Category?.Name • @request.City •
+                                @request.PricePerDay.ToString("N0") ج.م / يوم •
+                                تأمين @request.SecurityDeposit.ToString("N0") ج.م •
+                                مقدم الطلب: @request.User?.FullName
+                            </div>
+                            <div class="text-muted small" dir="ltr">@request.User?.Email</div>
+                            <div class="small mt-1">
+                                <i class="fa-solid fa-calendar-day ms-1"></i>
+                                @if (request.AvailableNow)
+                                {
+                                    <text>متاح فوراً</text>
+                                }
+                                else
+                                {
+                                    <text>متاح من @request.AvailableFrom?.ToString("yyyy/MM/dd") إلى @request.AvailableTo?.ToString("yyyy/MM/dd")</text>
+                                }
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(request.Description))
+                            {
+                                <div class="small text-muted mt-1">@request.Description</div>
+                            }
+                        </div>
+                        <div class="text-end">
+                            @if (isPending)
+                            {
+                                <span class="badge bg-warning text-dark">قيد المراجعة</span>
+                            }
+                            else if (request.Status == OwnerRequestStatus.Approved)
+                            {
+                                <span class="badge bg-success">مُعتمد ومنشور</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">مرفوض</span>
+                            }
+                            <div class="text-muted small mt-1">@request.RequestedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</div>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold small mb-2"><i class="fa-solid fa-images ms-1"></i> صور المنتج الست</h6>
+                    <div class="row g-2 mb-3">
+                        @for (var angle = 1; angle <= 6; angle++)
+                        {
+                            var image = images.FirstOrDefault(i => i.AngleIndex == angle);
+                            <div class="col-6 col-md-4 col-lg-2 text-center">
+                                @if (image != null)
+                                {
+                                    <a href="@image.ImagePath" target="_blank">
+                                        <img src="@image.ImagePath" alt="الزاوية @angle" class="img-fluid rounded border" style="height:110px;width:100%;object-fit:cover;">
+                                    </a>
+                                }
+                                else
+                                {
+                                    <div class="bg-light rounded border d-grid place-items-center" style="height:110px;">
+                                        <span class="text-muted small">لا توجد صورة للزاوية @angle</span>
+                                    </div>
+                                }
+                                <div class="small fw-bold mt-1">الزاوية @angle</div>
+                            </div>
+                        }
+                    </div>
+
+                    @if (isPending)
+                    {
+                        <form asp-action="ApproveOwner" asp-route-id="@request.Id" method="post">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="physicallyVerified" value="true" id="opv-@request.Id" required>
+                                        <label class="form-check-label small fw-bold" for="opv-@request.Id">المنتج موجود فعلياً</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="hasSixClearPhotos" value="true" id="ops-@request.Id" required>
+                                        <label class="form-check-label small fw-bold" for="ops-@request.Id">الصور الست واضحة ومكتملة</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="isUndamaged" value="true" id="oud-@request.Id" required>
+                                        <label class="form-check-label small fw-bold" for="oud-@request.Id">المنتج غير تالف</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="qualityAccepted" value="true" id="oqa-@request.Id" required>
+                                        <label class="form-check-label small fw-bold" for="oqa-@request.Id">الجودة مقبولة</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <input type="text" name="adminNote" class="form-control form-control-sm" style="max-width:320px" placeholder="ملاحظة المراجعة (اختياري)">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="fa-solid fa-check ms-1"></i> الموافقة على المالك والمنتج ونشره
+                                </button>
+                            </div>
+                        </form>
+
+                        <form asp-action="RejectOwner" asp-route-id="@request.Id" method="post" class="d-flex flex-wrap gap-2 mt-3">
+                            <input type="text" name="adminNote" class="form-control form-control-sm" style="max-width:320px" placeholder="سبب الرفض" required>
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="fa-solid fa-xmark ms-1"></i> رفض الطلب والمنتج
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="small text-muted">
+                            <i class="fa-solid fa-clock-rotate-left ms-1"></i>
+                            تمت المراجعة في @request.ReviewedAt?.ToLocalTime().ToString("yyyy/MM/dd HH:mm")
+                            @if (request.CreatedItemId.HasValue)
+                            {
+                                <span>— رقم المنتج المنشور: @request.CreatedItemId</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(request.AdminNote))
+                            {
+                                <span>— @request.AdminNote</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

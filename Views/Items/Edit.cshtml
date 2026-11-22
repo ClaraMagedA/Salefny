@@ -1,0 +1,112 @@
+@model Item
+@{
+    ViewData["Title"] = "تعديل بيانات الغرض";
+    var categories = ViewBag.Categories as IEnumerable<Category> ?? Enumerable.Empty<Category>();
+    var existingImages = ViewBag.ExistingImages as IEnumerable<ItemImage> ?? Enumerable.Empty<ItemImage>();
+    var imagesByAngle = existingImages
+        .GroupBy(img => img.AngleIndex)
+        .ToDictionary(g => g.Key, g => g.First().ImagePath);
+    var angleNames = new[]
+    {
+        "1. الواجهة الأمامية (Front)", "2. الجهة الخلفية (Back)",
+        "3. الجانب الأيسر (Left)", "4. الجانب الأيمن (Right)",
+        "5. الجهة العلوية (Top)", "6. القاعدة والرقم التسلسلي (Bottom)"
+    };
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0"><i class="fa-solid fa-pen text-success ms-2"></i> تعديل بيانات الغرض</h4>
+        <a asp-controller="Account" asp-action="MyListings" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-arrow-right ms-1"></i> العودة لمنتجاتي
+        </a>
+    </div>
+    <p class="text-muted small mb-4">
+        يمكنك تعديل البيانات الأساسية للغرض دون إعادة رفع الصور. إذا أردت تغيير صورة زاوية معينة، اختر ملفاً جديداً لها فقط.
+        حالة المراجعة والنشر لدى الإدارة ستبقى كما هي.
+    </p>
+
+    <form method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="All" class="text-danger small mb-3"></div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-8">
+                <label asp-for="Title" class="form-label small fw-bold"></label>
+                <input asp-for="Title" class="form-control" placeholder="مثال: شنيور ماكيتا احترافي">
+                <span asp-validation-for="Title" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="CategoryId" class="form-label small fw-bold"></label>
+                <select asp-for="CategoryId" class="form-select">
+                    <option value="">-- اختر القسم --</option>
+                    @foreach (var cat in categories)
+                    {
+                        <option value="@cat.Id">@cat.Name</option>
+                    }
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-3">
+                <label asp-for="PricePerDay" class="form-label small fw-bold"></label>
+                <input asp-for="PricePerDay" class="form-control" placeholder="150">
+                <span asp-validation-for="PricePerDay" class="text-danger small"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="SecurityDeposit" class="form-label small fw-bold"></label>
+                <input asp-for="SecurityDeposit" class="form-control" placeholder="1000">
+                <span asp-validation-for="SecurityDeposit" class="text-danger small"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="City" class="form-label small fw-bold"></label>
+                <input asp-for="City" class="form-control" placeholder="القاهرة">
+                <span asp-validation-for="City" class="text-danger small"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="Condition" class="form-label small fw-bold"></label>
+                <input asp-for="Condition" class="form-control" maxlength="50" placeholder="مثال: حالة ممتازة، مستعمل بحالة جيدة">
+                <span asp-validation-for="Condition" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="Description" class="form-label small fw-bold"></label>
+            <textarea asp-for="Description" class="form-control" rows="3" placeholder="وصف مختصر للحالة والملحقات"></textarea>
+            <span asp-validation-for="Description" class="text-danger small"></span>
+        </div>
+
+        <hr class="my-4">
+        <h6 class="fw-bold mb-3"><i class="fa-solid fa-cube ms-1"></i> صور الفحص سداسي الزوايا (اختيارية عند التعديل)</h6>
+        <p class="text-muted small mb-3">
+            اترك الحقل فارغاً للاحتفاظ بالصورة الحالية للزاوية. اختيار ملف جديد سيستبدل صورة تلك الزاوية فقط.
+        </p>
+        <div class="row g-3 mb-4">
+            @for (var i = 0; i < angleNames.Length; i++)
+            {
+                var angleIndex = i + 1;
+                var currentImage = imagesByAngle.ContainsKey(angleIndex) ? imagesByAngle[angleIndex] : null;
+                <div class="col-md-4">
+                    <div class="border rounded-3 p-3 text-center bg-light h-100">
+                        @if (!string.IsNullOrWhiteSpace(currentImage))
+                        {
+                            <img src="@currentImage" class="mb-2 rounded" style="height:90px;object-fit:cover;width:100%" alt="@angleNames[i]">
+                        }
+                        else
+                        {
+                            <i class="fa-solid fa-image fs-3 text-muted mb-2 d-block"></i>
+                        }
+                        <span class="d-block small fw-bold mb-2">@angleNames[i]</span>
+                        <input type="file" name="angleImages" class="form-control form-control-sm" accept="image/*">
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a asp-controller="Account" asp-action="MyListings" class="btn btn-outline-secondary px-4 py-2">إلغاء</a>
+            <button type="submit" class="btn btn-emerald px-5 py-2"><i class="fa-solid fa-floppy-disk ms-1"></i> حفظ التعديلات</button>
+        </div>
+    </form>
+</div>

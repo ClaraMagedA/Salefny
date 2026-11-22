@@ -1,76 +1,152 @@
-﻿@{
-    Layout = "_Layout";
+﻿@model AdminVerificationsViewModel
+@{
+    Layout = "_AdminLayout";
     ViewData["Title"] = "قائمة توثيق الهوية الوطنية (eKYC)";
 }
 
+@if (TempData["AdminMessage"] is string message)
+{
+    <div class="alert alert-success small"><i class="fa-solid fa-circle-check ms-1"></i> @message</div>
+}
+@if (TempData["AdminError"] is string error)
+{
+    <div class="alert alert-danger small"><i class="fa-solid fa-triangle-exclamation ms-1"></i> @error</div>
+}
+
 <div class="bg-white p-4 rounded-4 shadow-sm">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h5 class="fw-bold mb-1"><i class="fa-solid fa-address-card text-warning ms-2"></i> قائمة توثيق الهوية الوطنية (الرقم القومي)</h5>
-            <span class="text-muted small">مراجعة أرقام البطاقات والتحقق من صور الحسابات</span>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-address-card text-warning ms-2"></i> مراجعة توثيق الهوية (eKYC)</h5>
+            <span class="text-muted small">مراجعة بيانات البطاقة أو الجواز ومطابقتها مع صورة المستخدم.</span>
         </div>
-        <div class="d-flex gap-2">
-            <input type="text" class="form-control form-control-sm" placeholder="بحث بالاسم أو الرقم القومي...">
-            <button class="btn btn-emerald btn-sm px-3"><i class="fa-solid fa-rotate ms-1"></i> تحديث</button>
-        </div>
+        <span class="badge bg-warning text-dark">قيد المراجعة: @Model.PendingCount.ToString("N0")</span>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>بيانات المستخدم</th>
-                    <th>الرقم القومي (14 رقم)</th>
-                    <th>المحافظة / الحي</th>
-                    <th>تاريخ التقديم</th>
-                    <th>الحالة</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-user-circle fs-3 text-secondary"></i>
-                            <div>
-                                <strong class="d-block">أحمد محمود سعد</strong>
-                                <span class="text-muted small">ahmed.m@gmail.com</span>
+    @if (!Model.Verifications.Any())
+    {
+        <div class="alert alert-info small mb-0">لا توجد طلبات توثيق حتى الآن.</div>
+    }
+    else
+    {
+        <div class="d-grid gap-4">
+            @foreach (var verification in Model.Verifications)
+            {
+                var isPending = verification.Status == VerificationStatus.Pending;
+                <div class="border rounded-4 p-3 p-md-4">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                        <div>
+                            <h6 class="fw-bold mb-1">@verification.User?.FullName</h6>
+                            <div class="text-muted small" dir="ltr">@verification.User?.Email</div>
+                            <div class="text-muted small">
+                                <i class="fa-solid fa-city ms-1"></i> @verification.User?.City •
+                                <i class="fa-solid fa-calendar-day ms-1"></i> @verification.SubmittedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")
                             </div>
                         </div>
-                    </td>
-                    <td><code>29910200104859</code></td>
-                    <td>القاهرة (مدينة نصر)</td>
-                    <td>24 أكتوبر 2026</td>
-                    <td><span class="badge bg-warning text-dark">قيد المراجعة</span></td>
-                    <td>
-                        <div class="d-flex gap-1">
-                            <button class="btn btn-success btn-sm"><i class="fa-solid fa-check ms-1"></i> موافقة</button>
-                            <button class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-xmark ms-1"></i> رفض</button>
+                        <div class="text-end">
+                            @if (isPending)
+                            {
+                                <span class="badge bg-warning text-dark">قيد المراجعة</span>
+                            }
+                            else if (verification.Status == VerificationStatus.Approved)
+                            {
+                                <span class="badge bg-success">موافق عليه</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">مرفوض</span>
+                            }
                         </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-user-circle fs-3 text-secondary"></i>
-                            <div>
-                                <strong class="d-block">نوران الدين حسن</strong>
-                                <span class="text-muted small">nouran.h@gmail.com</span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3 col-lg-2">
+                            <span class="small text-muted d-block">نوع المستند</span>
+                            <strong class="small">@Model.DocumentTypeLabel(verification.DocumentType)</strong>
+                        </div>
+                        <div class="col-md-4 col-lg-3">
+                            <span class="small text-muted d-block">رقم المستند</span>
+                            <strong class="small" dir="ltr"><code>@verification.NationalIdNumber</code></strong>
+                        </div>
+                        <div class="col-md-5 col-lg-3">
+                            <span class="small text-muted d-block">الاسم على المستند</span>
+                            <strong class="small">@verification.DocumentHolderName</strong>
+                        </div>
+                        <div class="col-md-6 col-lg-2">
+                            <span class="small text-muted d-block">تاريخ الانتهاء</span>
+                            <strong class="small">@verification.NationalIdExpiryDate.ToString("yyyy/MM/dd")</strong>
+                        </div>
+                        <div class="col-md-6 col-lg-2">
+                            <span class="small text-muted d-block">حالة حساب المستخدم</span>
+                            @if (verification.User?.IsVerified == true)
+                            {
+                                <span class="badge bg-success">موثّق</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">غير موثّق</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold small mb-2"><i class="fa-solid fa-id-card ms-1"></i> صورة المستند</h6>
+                            @if (!string.IsNullOrWhiteSpace(verification.FrontIdImagePath))
+                            {
+                                <a href="@verification.FrontIdImagePath" target="_blank">
+                                    <img src="@verification.FrontIdImagePath" alt="صورة المستند" class="img-fluid rounded border" style="max-height:180px;object-fit:contain;">
+                                </a>
+                                <div class="small text-muted mt-1 text-break" dir="ltr">@verification.FrontIdImagePath</div>
+                            }
+                            else
+                            {
+                                <div class="bg-light rounded border d-grid place-items-center" style="height:120px;">
+                                    <span class="text-muted small">لا توجد صورة للمستند</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold small mb-2"><i class="fa-solid fa-camera-viewfinder ms-1"></i> صورة السيلفي</h6>
+                            <div class="bg-light rounded border d-grid place-items-center" style="height:120px;">
+                                <span class="text-muted small text-center">
+                                    <i class="fa-solid fa-image d-block mb-1"></i>
+                                    صورة السيلفي (عنصر نائب — المسار: @verification.SelfieImagePath)
+                                </span>
                             </div>
                         </div>
-                    </td>
-                    <td><code>30105151203482</code></td>
-                    <td>الجيزة (الدقي)</td>
-                    <td>24 أكتوبر 2026</td>
-                    <td><span class="badge bg-warning text-dark">قيد المراجعة</span></td>
-                    <td>
-                        <div class="d-flex gap-1">
-                            <button class="btn btn-success btn-sm"><i class="fa-solid fa-check ms-1"></i> موافقة</button>
-                            <button class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-xmark ms-1"></i> رفض</button>
+                    </div>
+
+                    @if (isPending)
+                    {
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <form asp-action="ApproveVerification" asp-route-id="@verification.Id" method="post" class="d-flex flex-wrap gap-2">
+                                <input type="text" name="adminNote" class="form-control form-control-sm" style="max-width:340px" placeholder="ملاحظة الموافقة (اختياري)">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="fa-solid fa-check ms-1"></i> موافقة وتوثيق الحساب
+                                </button>
+                            </form>
+                            <form asp-action="RejectVerification" asp-route-id="@verification.Id" method="post" class="d-flex flex-wrap gap-2">
+                                <input type="text" name="adminNote" class="form-control form-control-sm" style="max-width:340px" placeholder="سبب الرفض" required>
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="fa-solid fa-xmark ms-1"></i> رفض
+                                </button>
+                            </form>
                         </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+                    }
+                    else
+                    {
+                        <div class="small text-muted">
+                            <i class="fa-solid fa-clock-rotate-left ms-1"></i>
+                            تمت المراجعة في @verification.ReviewedAt?.ToLocalTime().ToString("yyyy/MM/dd HH:mm")
+                            <span>— بواسطة: @(string.IsNullOrWhiteSpace(verification.ReviewedByAdminId) ? "الإدارة" : verification.ReviewedByAdminId)</span>
+                            @if (!string.IsNullOrWhiteSpace(verification.AdminNote))
+                            {
+                                <span>— @verification.AdminNote</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
 </div>

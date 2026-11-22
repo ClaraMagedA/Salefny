@@ -7,13 +7,18 @@
         <div class="bg-white p-4 rounded-4 shadow-sm">
             <h3 class="fw-bold text-center mb-4"><span class="text-success">سَلِّفني</span> — تسجيل الدخول</h3>
             <form method="post">
+                <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+                <div asp-validation-summary="All" class="text-danger small mb-3"></div>
                 <div class="mb-3">
                     <label class="form-label small fw-bold">البريد الإلكتروني</label>
-                    <input type="email5" name="Email" class="form-control" placeholder="name@example.com" required>
+                    <input type="email" name="Email" class="form-control" placeholder="name@example.com" required>
                 </div>
-                <div class="mb-4">
+                <div class="mb-2">
                     <label class="form-label small fw-bold">كلمة المرور</label>
                     <input type="password" name="Password" class="form-control" required>
+                </div>
+                <div class="text-start mb-4">
+                    <a asp-action="ForgotPassword" class="small text-success text-decoration-none">نسيت كلمة المرور؟</a>
                 </div>
                 <button type="submit" class="btn btn-emerald w-100 py-2 mb-3">دخول</button>
                 <div class="text-center small">

@@ -1,0 +1,87 @@
+@model List<AdminManagementViewModel>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "إدارة المدراء والصلاحيات";
+}
+
+@if (TempData["AdminMessage"] is string message)
+{
+    <div class="alert alert-success small"><i class="fa-solid fa-circle-check ms-1"></i> @message</div>
+}
+@if (TempData["AdminError"] is string error)
+{
+    <div class="alert alert-danger small"><i class="fa-solid fa-triangle-exclamation ms-1"></i> @error</div>
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-user-shield text-success ms-2"></i> إدارة المدراء والصلاحيات</h5>
+            <span class="text-muted small">متاح للمدير العام فقط. لا يمكن تعديل حساب المدير العام أو حسابك الحالي.</span>
+        </div>
+        <span class="badge bg-dark">المديرون: @Model.Count(u => u.IsAdmin)</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>المستخدم</th>
+                    <th>البريد الإلكتروني</th>
+                    <th>الصلاحيات</th>
+                    <th>الإجراء</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td><strong>@user.FullName</strong></td>
+                        <td dir="ltr" class="small">@user.Email</td>
+                        <td>
+                            <span class="badge bg-secondary">مستأجر</span>
+                            @if (user.IsAdmin)
+                            {
+                                <span class="badge bg-primary">مدير</span>
+                            }
+                            @if (user.IsSuperAdmin)
+                            {
+                                <span class="badge bg-success">مدير عام</span>
+                            }
+                            @if (user.IsCurrentUser)
+                            {
+                                <span class="badge bg-dark">حسابك</span>
+                            }
+                        </td>
+                        <td>
+                            @if (user.IsSuperAdmin || user.IsCurrentUser)
+                            {
+                                <span class="text-muted small">محمي</span>
+                            }
+                            else if (user.IsAdmin)
+                            {
+                                <form asp-action="DemoteFromAdmin" method="post">
+                                    <input type="hidden" name="userId" value="@user.UserId" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm"
+                                            onclick="return confirm('هل تريد سحب صلاحية المدير من هذا الحساب؟');">
+                                        <i class="fa-solid fa-user-slash ms-1"></i> سحب صلاحية المدير
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="PromoteToAdmin" method="post">
+                                    <input type="hidden" name="userId" value="@user.UserId" />
+                                    <button type="submit" class="btn btn-success btn-sm"
+                                            onclick="return confirm('هل تريد منح هذا المستخدم صلاحية المدير؟');">
+                                        <i class="fa-solid fa-user-plus ms-1"></i> تعيين مدير
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

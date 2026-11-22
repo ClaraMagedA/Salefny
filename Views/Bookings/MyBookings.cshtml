@@ -1,38 +1,217 @@
-﻿@{
+﻿@model IEnumerable<Booking>
+@using SalefnyMVC.Services
+@{
     ViewData["Title"] = "تأجيراتي ونشاطي";
+    ViewData["ActiveAccountTab"] = "MyBookings";
+
+    Func<string?, string> paymentName = p => p switch
+    {
+        "InstaPay" => "InstaPay",
+        "OPay" => "OPay",
+        "VodafoneCash" => "فودافون كاش",
+        "BankCard" => "بطاقة بنكية",
+        "CashOnDelivery" => "كاش عند التسليم",
+        _ => "غير محدد"
+    };
+    Func<string?, string> deliveryName = d => d switch
+    {
+        "Handover" => "مقابلة مباشرة",
+        "Courier" => "مندوب توصيل",
+        _ => "غير محدد"
+    };
+    Func<BookingStatus, string> statusName = s => s switch
+    {
+        BookingStatus.Pending => "بانتظار موافقة المالك",
+        BookingStatus.Approved => "موافقة — بانتظار الاستلام",
+        BookingStatus.Active => "نشط",
+        BookingStatus.Completed => "مكتمل",
+        BookingStatus.Cancelled => "ملغي",
+        BookingStatus.Rejected => "مرفوض",
+        BookingStatus.Disputed => "متنازع عليه",
+        _ => s.ToString()
+    };
 }
 
 <div class="bg-white p-4 rounded-4 shadow-sm">
-    <h5 class="fw-bold mb-4"><i class="fa-solid fa-box text-success ms-2"></i> تأجيراتي وعمليات الاستعارة السابقة</h5>
+    @await Html.PartialAsync("_AccountNav")
 
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>رقم الحجز</th>
-                    <th>المنتج</th>
-                    <th>المالك</th>
-                    <th>مدة التأجير</th>
-                    <th>إيجار اليوم</th>
-                    <th>الضمان المحجوز</th>
-                    <th>حالة العملية</th>
-                    <th>الإجراء</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><code>#ORD-99201</code></td>
-                    <td><strong>كاميرا Sony Alpha a7 III</strong></td>
-                    <td>زياد هاني (المعادي)</td>
-                    <td>3 أيام (24 - 27 أكتوبر)</td>
-                    <td>450 ج.م</td>
-                    <td><span class="badge bg-warning text-dark">5,000 ج.م (محجوز)</span></td>
-                    <td><span class="badge bg-success">قيد الاستخدام</span></td>
-                    <td>
-                        <a asp-controller="Disputes" asp-action="InspectionStudio" class="btn btn-emerald btn-sm"><i class="fa-solid fa-camera ms-1"></i> رفع صور الإرجاع</a>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success small mt-3">
+            <i class="fa-solid fa-circle-check ms-1"></i> @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger small mt-3">
+            <i class="fa-solid fa-circle-exclamation ms-1"></i> @TempData["Error"]
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold mb-0"><i class="fa-solid fa-box text-success ms-2"></i> تأجيراتي وعمليات الاستعارة السابقة</h5>
+        <a asp-controller="Items" asp-action="Index" class="btn btn-outline-success btn-sm">تصفح المزيد</a>
     </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="fa-solid fa-box-open fa-3x mb-3 d-block opacity-50"></i>
+            <p class="mb-3">لا توجد حجوزات مسجلة باسمك بعد.</p>
+            <a asp-controller="Items" asp-action="Index" class="btn btn-emerald btn-sm">تصفح السوق</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>رقم الحجز</th>
+                        <th>المنتج</th>
+                        <th>المالك</th>
+                        <th>المدة</th>
+                        <th>الدفع والتسليم</th>
+                        <th>حالة الاستلام</th>
+                        <th>الفحص والضرر</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var booking in Model)
+                    {
+                        var returnInspection = booking.Inspections?.FirstOrDefault(i => i.Stage == InspectionStage.ReturnByRenter);
+                        var receiptInspection = booking.Inspections?.FirstOrDefault(i => i.Stage == InspectionStage.ReceiptByOwner);
+                        var canInspect = booking.IsDelivered;
+                        var canContinue = booking.Status != BookingStatus.Cancelled
+                                          && booking.Status != BookingStatus.Rejected
+                                          && booking.Status != BookingStatus.Completed
+                                          && booking.Status != BookingStatus.Disputed;
+                        <tr>
+                            <td><code>#ORD-@booking.Id</code><div class="small text-muted mt-1">@statusName(booking.Status)</div></td>
+                            <td><strong>@booking.Item?.Title</strong></td>
+                            <td>@booking.Item?.Owner?.FullName</td>
+                            <td>
+                                @BusinessRules.RentalDays(booking.StartDate, booking.EndDate) أيام
+                                <div class="small text-muted">@booking.StartDate.ToString("d MMM") - @booking.EndDate.ToString("d MMM")</div>
+                                @if (!string.IsNullOrWhiteSpace(booking.RenterNote))
+                                {
+                                    <div class="small text-muted mt-1" title="@booking.RenterNote">ملاحظتك: @booking.RenterNote</div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(booking.CancellationReason))
+                                {
+                                    <div class="small text-danger mt-1">سبب الإلغاء: @booking.CancellationReason</div>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">@paymentName(booking.PaymentMethod)</span>
+                                @if (!string.IsNullOrWhiteSpace(booking.PaymentReference))
+                                {
+                                    <div class="small text-muted">رقم العملية: @booking.PaymentReference</div>
+                                }
+                                <div class="small text-muted">@deliveryName(booking.DeliveryMethod)</div>
+                                @if (!string.IsNullOrWhiteSpace(booking.DeliveryDetails))
+                                {
+                                    <div class="small text-muted">@booking.DeliveryDetails</div>
+                                }
+                            </td>
+                            <td>
+                                @if (booking.IsDelivered)
+                                {
+                                    <span class="badge bg-success"><i class="fa-solid fa-truck ms-1"></i> تم التسليم</span>
+                                    <div class="small text-muted mt-1">@booking.DeliveredAt?.ToString("d MMM HH:mm")</div>
+                                }
+                                else if (booking.Status == BookingStatus.Pending)
+                                {
+                                    <span class="badge bg-warning text-dark">بانتظار الموافقة</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">لم يُسلَّم بعد</span>
+                                }
+
+                                @if (booking.ReturnedAt != null)
+                                {
+                                    <div class="small text-success mt-1"><i class="fa-solid fa-rotate-left ms-1"></i> تم الإرجاع</div>
+                                }
+                            </td>
+                            <td>
+                                @if (returnInspection != null)
+                                {
+                                    <div class="small"><i class="fa-solid fa-circle-check text-success ms-1"></i> فحص الإرجاع محفوظ</div>
+                                }
+                                @if (receiptInspection != null)
+                                {
+                                    <div class="small"><i class="fa-solid fa-circle-check text-success ms-1"></i> فحص المالك محفوظ</div>
+                                }
+                                @if (booking.DisputeLog != null || returnInspection?.DamageReported == true || receiptInspection?.DamageReported == true)
+                                {
+                                    <div class="small text-danger"><i class="fa-solid fa-triangle-exclamation ms-1"></i> يوجد بلاغ ضرر</div>
+                                }
+                                @if (returnInspection == null && receiptInspection == null && booking.DisputeLog == null)
+                                {
+                                    <span class="text-muted small">لا توجد فحوص بعد</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <a asp-action="Details" asp-route-id="@booking.Id" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fa-solid fa-circle-info ms-1"></i> التفاصيل
+                                    </a>
+
+                                    @if (BusinessRules.CanCancel(booking, DateTime.Now))
+                                    {
+                                        <form asp-action="Cancel" asp-route-id="@booking.Id" method="post" class="d-flex gap-1 align-items-center">
+                                            <input type="text" name="reason" class="form-control form-control-sm" style="max-width: 160px;"
+                                                   maxlength="300" placeholder="سبب الإلغاء (اختياري)" aria-label="سبب الإلغاء">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('هل تريد إلغاء هذا الحجز؟');">
+                                                <i class="fa-solid fa-xmark ms-1"></i> إلغاء
+                                            </button>
+                                        </form>
+                                    }
+
+                                    @if (canContinue && booking.Status != BookingStatus.Pending && !booking.IsDelivered)
+                                    {
+                                        <form asp-action="MarkDelivered" asp-route-id="@booking.Id" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-handshake ms-1"></i> استلمت الغرض</button>
+                                        </form>
+                                    }
+
+                                    @if (canInspect && canContinue)
+                                    {
+                                        <a asp-controller="Disputes" asp-action="InspectionStudio" asp-route-bookingId="@booking.Id" asp-route-mode="return" class="btn btn-outline-success btn-sm">
+                                            <i class="fa-solid fa-camera ms-1"></i> فحص الإرجاع
+                                        </a>
+                                    }
+
+                                    @if (canContinue && booking.IsDelivered && booking.ReturnedAt == null && returnInspection != null)
+                                    {
+                                        <form asp-action="MarkReturned" asp-route-id="@booking.Id" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-warning btn-sm"><i class="fa-solid fa-rotate-left ms-1"></i> أعدت الغرض</button>
+                                        </form>
+                                    }
+                                    else if (canContinue && booking.IsDelivered && booking.ReturnedAt == null)
+                                    {
+                                        <span class="text-muted small">سجّل فحص الإرجاع أولاً</span>
+                                    }
+
+                                    @if (canContinue)
+                                    {
+                                        <a asp-controller="Disputes" asp-action="InspectionStudio" asp-route-bookingId="@booking.Id" asp-route-mode="damage" class="btn btn-outline-danger btn-sm">
+                                            <i class="fa-solid fa-triangle-exclamation ms-1"></i> إبلاغ عن ضرر
+                                        </a>
+                                    }
+
+                                    @if (booking.LateCancellationByRenter)
+                                    {
+                                        <span class="badge bg-danger">إلغاء متأخر</span>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>

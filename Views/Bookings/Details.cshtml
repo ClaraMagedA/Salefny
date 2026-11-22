@@ -1,0 +1,244 @@
+@model Booking
+@using SalefnyMVC.Services
+@{
+    ViewData["Title"] = "تفاصيل الحجز #ORD-" + Model.Id;
+    var isOwner = ViewBag.IsOwner is bool ownerFlag && ownerFlag;
+    ViewData["ActiveAccountTab"] = isOwner ? "OwnerRequests" : "MyBookings";
+    var canShowPhone = ViewBag.CanShowPhone is bool showPhone && showPhone;
+    var days = BusinessRules.RentalDays(Model.StartDate, Model.EndDate);
+    var fee = Model.TotalRentalAmount * 0.10m;
+    var grandTotal = Model.TotalRentalAmount + fee + Model.EscrowDepositAmount;
+
+    Func<BookingStatus, string> statusName = s => s switch
+    {
+        BookingStatus.Pending => "بانتظار موافقة المالك",
+        BookingStatus.Approved => "موافقة — بانتظار الاستلام",
+        BookingStatus.Active => "نشط",
+        BookingStatus.Completed => "مكتمل",
+        BookingStatus.Cancelled => "ملغي",
+        BookingStatus.Rejected => "مرفوض",
+        BookingStatus.Disputed => "متنازع عليه",
+        _ => s.ToString()
+    };
+    Func<BookingStatus, string> statusClass = s => s switch
+    {
+        BookingStatus.Pending => "bg-warning text-dark",
+        BookingStatus.Approved or BookingStatus.Active => "bg-primary",
+        BookingStatus.Completed => "bg-success",
+        BookingStatus.Disputed => "bg-danger",
+        _ => "bg-secondary"
+    };
+    Func<DepositStatus, string> depositName = d => d switch
+    {
+        DepositStatus.Held => "محتجز لصالح الحجز",
+        DepositStatus.Released => "مُطلق",
+        DepositStatus.Frozen => "مجمد لحين بت النزاع",
+        DepositStatus.Deducted => "خصم جزئي أو كلي",
+        _ => "غير محتجز"
+    };
+    Func<string?, string> paymentName = p => p switch
+    {
+        "InstaPay" => "InstaPay",
+        "OPay" => "OPay",
+        "VodafoneCash" => "فودافون كاش",
+        "BankCard" => "بطاقة بنكية",
+        "CashOnDelivery" => "كاش عند التسليم",
+        _ => "غير محدد"
+    };
+
+    var returnInspection = Model.Inspections?.FirstOrDefault(i => i.Stage == InspectionStage.ReturnByRenter);
+    var receiptInspection = Model.Inspections?.FirstOrDefault(i => i.Stage == InspectionStage.ReceiptByOwner);
+    var otherPartyName = isOwner ? Model.Renter?.FullName : Model.Item?.Owner?.FullName;
+    var otherPartyPhone = isOwner ? Model.Renter?.PhoneNumber : Model.Item?.Owner?.PhoneNumber;
+}
+
+<style>
+    .booking-timeline {
+        border-inline-end: 2px solid #10b981;
+        padding-inline-end: 20px;
+        margin-inline-start: 6px;
+        list-style: none;
+    }
+
+        .booking-timeline li {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+            .booking-timeline li::after {
+                content: '';
+                position: absolute;
+                inset-inline-end: -27px;
+                top: 5px;
+                width: 11px;
+                height: 11px;
+                border-radius: 50%;
+                background: #10b981;
+                box-shadow: 0 0 0 3px #ecfdf5;
+            }
+</style>
+
+<div class="bg-white p-4 rounded-4 shadow-sm mb-5">
+    @await Html.PartialAsync("_AccountNav")
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success small mt-3"><i class="fa-solid fa-circle-check ms-1"></i> @TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger small mt-3"><i class="fa-solid fa-circle-exclamation ms-1"></i> @TempData["Error"]</div>
+    }
+
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
+        <div>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-file-invoice text-success ms-2"></i> تفاصيل الحجز <code>#ORD-@Model.Id</code></h5>
+            <span class="text-muted small">@Model.Item?.Title | @(isOwner ? "المستأجر: " + otherPartyName : "المالك: " + otherPartyName)</span>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="badge @statusClass(Model.Status)">@statusName(Model.Status)</span>
+            <a asp-action="@(isOwner ? "OwnerRequests" : "MyBookings")" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-arrow-right ms-1"></i> العودة
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="border rounded-3 p-3 mb-4">
+                <h6 class="fw-bold mb-3"><i class="fa-solid fa-clock-rotate-left text-success ms-1"></i> مسار الحجز</h6>
+                <ul class="booking-timeline">
+                    <li>
+                        <div class="fw-bold small">إنشاء طلب الحجز</div>
+                        <div class="text-muted small">الفترة المطلوبة: @Model.StartDate.ToString("d MMM yyyy") — @Model.EndDate.ToString("d MMM yyyy") (@days أيام)</div>
+                    </li>
+                    @if (Model.Status != BookingStatus.Pending && Model.Status != BookingStatus.Rejected && Model.Status != BookingStatus.Cancelled)
+                    {
+                        <li>
+                            <div class="fw-bold small">موافقة المالك</div>
+                            <div class="text-muted small">@(Model.UpdatedAt?.ToString("d MMM HH:mm") ?? "تمت الموافقة")</div>
+                        </li>
+                    }
+                    @if (Model.IsDelivered)
+                    {
+                        <li>
+                            <div class="fw-bold small">استلام الغرض</div>
+                            <div class="text-muted small">@Model.DeliveredAt?.ToString("d MMM HH:mm")</div>
+                        </li>
+                    }
+                    @if (returnInspection != null)
+                    {
+                        <li>
+                            <div class="fw-bold small">فحص الإرجاع (6 زوايا)</div>
+                            <div class="text-muted small">@returnInspection.CreatedAt.ToString("d MMM HH:mm") — @(returnInspection.DamageReported ? "أُبلِغ عن ضرر" : "لا أضرار ظاهرة")</div>
+                        </li>
+                    }
+                    @if (Model.ReturnedAt != null)
+                    {
+                        <li>
+                            <div class="fw-bold small">إعادة الغرض من المستأجر</div>
+                            <div class="text-muted small">@Model.ReturnedAt.Value.ToString("d MMM HH:mm")</div>
+                        </li>
+                    }
+                    @if (receiptInspection != null)
+                    {
+                        <li>
+                            <div class="fw-bold small">فحص استلام المالك (6 زوايا)</div>
+                            <div class="text-muted small">@receiptInspection.CreatedAt.ToString("d MMM HH:mm") — @(receiptInspection.DamageReported ? "أُبلِغ عن ضرر" : "لا أضرار")</div>
+                        </li>
+                    }
+                    @if (Model.Status is BookingStatus.Completed or BookingStatus.Cancelled or BookingStatus.Rejected or BookingStatus.Disputed)
+                    {
+                        <li>
+                            <div class="fw-bold small">الحالة النهائية: @statusName(Model.Status)</div>
+                            <div class="text-muted small">@(Model.UpdatedAt?.ToString("d MMM HH:mm") ?? "—")</div>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div class="border rounded-3 p-3">
+                <h6 class="fw-bold mb-3"><i class="fa-solid fa-money-bill-wave text-success ms-1"></i> تفاصيل المبالغ</h6>
+                <div class="d-flex justify-content-between small mb-2">
+                    <span>الإيجار (@days يوم × @(Model.Item?.PricePerDay.ToString("N0") ?? "0") ج.م):</span>
+                    <strong>@Model.TotalRentalAmount.ToString("N0") ج.م</strong>
+                </div>
+                <div class="d-flex justify-content-between small mb-2 text-muted">
+                    <span>رسوم الخدمة (10% — للعرض فقط):</span>
+                    <strong>@fee.ToString("N0") ج.م</strong>
+                </div>
+                <div class="d-flex justify-content-between small mb-2 text-warning">
+                    <span>وديعة التأمين:</span>
+                    <strong>@Model.EscrowDepositAmount.ToString("N0") ج.م</strong>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between fw-bold">
+                    <span>الإجمالي مع رسوم الخدمة والوديعة:</span>
+                    <span>@grandTotal.ToString("N0") ج.م</span>
+                </div>
+                <div class="small mt-3">حالة الوديعة: <span class="badge bg-light text-dark border">@depositName(Model.DepositStatus)</span></div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="border rounded-3 p-3 mb-4">
+                <h6 class="fw-bold mb-3"><i class="fa-solid fa-truck text-success ms-1"></i> التسليم والدفع</h6>
+                <div class="small mb-2"><span class="text-muted">طريقة التسليم:</span> @(Model.DeliveryMethod == "Courier" ? "مندوب توصيل" : "مقابلة مباشرة")</div>
+                @if (!string.IsNullOrWhiteSpace(Model.DeliveryDetails))
+                {
+                    <div class="small mb-2"><span class="text-muted">بيانات الاستلام:</span> @Model.DeliveryDetails</div>
+                }
+                <div class="small mb-2"><span class="text-muted">طريقة الدفع:</span> @paymentName(Model.PaymentMethod)</div>
+                @if (!string.IsNullOrWhiteSpace(Model.PaymentReference))
+                {
+                    <div class="small mb-2" dir="ltr"><span class="text-muted">رقم العملية:</span> @Model.PaymentReference</div>
+                }
+            </div>
+
+            <div class="border rounded-3 p-3 mb-4">
+                <h6 class="fw-bold mb-3"><i class="fa-solid fa-user-circle text-success ms-1"></i> الطرف الآخر</h6>
+                <div class="small mb-2"><span class="text-muted">الاسم:</span> @otherPartyName</div>
+                @if (canShowPhone)
+                {
+                    <div class="small" dir="ltr"><span class="text-muted">رقم الهاتف:</span> @otherPartyPhone</div>
+                }
+                else
+                {
+                    <div class="alert alert-light small border mb-0">
+                        <i class="fa-solid fa-lock ms-1"></i> يظهر رقم هاتف الطرف الآخر بعد الموافقة على الحجز فقط.
+                    </div>
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.RenterNote))
+            {
+                <div class="border rounded-3 p-3 mb-4">
+                    <h6 class="fw-bold mb-2"><i class="fa-solid fa-note-sticky text-success ms-1"></i> ملاحظة المستأجر</h6>
+                    <p class="small text-muted mb-0">@Model.RenterNote</p>
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.CancellationReason) || Model.LateCancellationByRenter)
+            {
+                <div class="border border-danger rounded-3 p-3 mb-4">
+                    <h6 class="fw-bold mb-2 text-danger"><i class="fa-solid fa-ban ms-1"></i> الإلغاء</h6>
+                    @if (!string.IsNullOrWhiteSpace(Model.CancellationReason))
+                    {
+                        <p class="small text-muted mb-1">السبب: @Model.CancellationReason</p>
+                    }
+                    @if (Model.LateCancellationByRenter)
+                    {
+                        <span class="badge bg-danger">إلغاء متأخر (أقل من 48 ساعة)</span>
+                    }
+                </div>
+            }
+
+            @if (Model.DisputeLog != null)
+            {
+                <div class="alert alert-danger small">
+                    <i class="fa-solid fa-triangle-exclamation ms-1"></i> يوجد بلاغ ضرر مفتوح على هذا الحجز: @Model.DisputeLog.ClaimDescription
+                </div>
+            }
+        </div>
+    </div>
+</div>

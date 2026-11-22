@@ -1,89 +1,170 @@
-﻿@{
+﻿@model InspectionStudioViewModel
+@{
     ViewData["Title"] = "فحص الـ 6 زوايا والتوثيق";
+    ViewData["ActiveAccountTab"] = Model.IsRenter ? "MyBookings" : "OwnerRequests";
+
+    var angleNames = new[]
+    {
+        "1. الواجهة الأمامية (Front)", "2. الجهة الخلفية (Back)",
+        "3. الجانب الأيسر (Left)", "4. الجانب الأيمن (Right)",
+        "5. الجهة العلوية (Top)", "6. القاعدة والرقم التسلسلي (Bottom)"
+    };
+    var existingPaths = (Model.ExistingInspection?.PhotoPaths ?? string.Empty)
+        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+        .Select(p => p.Trim())
+        .ToList();
+    var originalImages = Model.Booking.Item?.ItemImages?.OrderBy(i => i.AngleIndex).ToList() ?? new List<ItemImage>();
+    var damageChecked = Model.DamageMode || Model.ExistingInspection?.DamageReported == true;
+    var damageText = Model.ExistingInspection?.DamageDescription ?? string.Empty;
 }
 
 <style>
-    .angle-card {
+    .inspection-angle {
         border: 2px dashed #cbd5e1;
         border-radius: 12px;
-        padding: 16px;
-        text-align: center;
+        padding: 14px;
         background: #f8fafc;
-        transition: all 0.2s;
+        text-align: center;
     }
 
-        .angle-card.done {
-            border: 2px solid var(--primary-color);
+        .inspection-angle.has-file {
+            border-style: solid;
+            border-color: var(--primary-color);
             background: #f0fdf4;
         }
+
+    .inspection-preview {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 8px;
+        background: #e2e8f0;
+    }
 </style>
 
 <div class="bg-white p-4 rounded-4 shadow-sm mb-5">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold mb-0"><i class="fa-solid fa-camera-rotate text-success ms-2"></i> نظام فحص توثيق حالة الغرض (Cubical 6-Angle)</h5>
-        <span class="badge bg-success fs-6">حالة المطابقة الحالية: 98% (سليم)</span>
-    </div>
-    <p class="text-muted small mb-4">يتم التقاط ومطابقة من 6 زوايا قبل التسليم وبعد الاستلام لمنع الخلافات وضمان الوديعة.</p>
+    @await Html.PartialAsync("_AccountNav")
 
-    <div class="row g-3">
-        <!-- Angle 1 -->
-        <div class="col-6 col-md-4">
-            <div class="angle-card done">
-                <span class="badge bg-success mb-2"><i class="fa-solid fa-check ms-1"></i> متطابق</span>
-                <h6 class="fw-bold small mb-2">1. الواجهة الأمامية (Front)</h6>
-                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=200&q=80" class="img-fluid rounded mb-2" alt="front">
-                <span class="text-muted d-block small">صورة المؤجر قبل / المستأجر بعد</span>
-            </div>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success small mt-3">
+            <i class="fa-solid fa-circle-check ms-1"></i> @TempData["Success"]
         </div>
-        <!-- Angle 2 -->
-        <div class="col-6 col-md-4">
-            <div class="angle-card done">
-                <span class="badge bg-success mb-2"><i class="fa-solid fa-check ms-1"></i> متطابق</span>
-                <h6 class="fw-bold small mb-2">2. الشاشة والجهة الخلفية (Back)</h6>
-                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=200&q=80" class="img-fluid rounded mb-2" alt="back">
-                <span class="text-muted d-block small">صورة المؤجر قبل / المستأجر بعد</span>
-            </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger small mt-3">
+            <i class="fa-solid fa-circle-exclamation ms-1"></i> @TempData["Error"]
         </div>
-        <!-- Angle 3 -->
-        <div class="col-6 col-md-4">
-            <div class="angle-card done">
-                <span class="badge bg-success mb-2"><i class="fa-solid fa-check ms-1"></i> متطابق</span>
-                <h6 class="fw-bold small mb-2">3. الجانب الأيسر والمنافذ (Left)</h6>
-                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=200&q=80" class="img-fluid rounded mb-2" alt="left">
-                <span class="text-muted d-block small">صورة المؤجر قبل / المستأجر بعد</span>
-            </div>
-        </div>
-        <!-- Angle 4 -->
-        <div class="col-6 col-md-4">
-            <div class="angle-card done">
-                <span class="badge bg-success mb-2"><i class="fa-solid fa-check ms-1"></i> متطابق</span>
-                <h6 class="fw-bold small mb-2">4. الجانب الأيمن والمقبض (Right)</h6>
-                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=200&q=80" class="img-fluid rounded mb-2" alt="right">
-                <span class="text-muted d-block small">صورة المؤجر قبل / المستأجر بعد</span>
-            </div>
-        </div>
-        <!-- Angle 5 -->
-        <div class="col-6 col-md-4">
-            <div class="angle-card done">
-                <span class="badge bg-success mb-2"><i class="fa-solid fa-check ms-1"></i> متطابق</span>
-                <h6 class="fw-bold small mb-2">5. الجهة العلوية والأزرار (Top)</h6>
-                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=200&q=80" class="img-fluid rounded mb-2" alt="top">
-                <span class="text-muted d-block small">صورة المؤجر قبل / المستأجر بعد</span>
-            </div>
-        </div>
-        <!-- Angle 6 -->
-        <div class="col-6 col-md-4">
-            <div class="angle-card done">
-                <span class="badge bg-success mb-2"><i class="fa-solid fa-check ms-1"></i> متطابق</span>
-                <h6 class="fw-bold small mb-2">6. القاعدة والرقم التسلسلي (Bottom)</h6>
-                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=200&q=80" class="img-fluid rounded mb-2" alt="bottom">
-                <span class="text-muted d-block small">صورة المؤجر قبل / المستأجر بعد</span>
-            </div>
-        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h5 class="fw-bold mb-0"><i class="fa-solid fa-camera-rotate text-success ms-2"></i> @Model.StageLabel</h5>
+        <span class="badge bg-light text-dark border">طلب #ORD-@Model.Booking.Id</span>
     </div>
 
-    <div class="mt-4 p-3 bg-light rounded-3 d-flex justify-content-between align-items-center">
-        <span class="text-muted small">عند اعتماد المطابقة بنجاح، يتم تحرير المبلغ وإعادة الوديعة للمستأجر فوراً.</span>
-        <button class="btn btn-emerald">تأكيد المطابقة وإطلاق الوديعة</button>
+    <div class="bg-light rounded-3 p-3 mb-4">
+        <div class="fw-bold">@Model.Booking.Item?.Title</div>
+        <div class="text-muted small">
+            @(Model.IsRenter ? "المالك: " + Model.Booking.Item?.Owner?.FullName : "المستأجر: " + Model.Booking.Renter?.FullName)
+            | الفترة: @Model.Booking.StartDate.ToString("d MMM") - @Model.Booking.EndDate.ToString("d MMM")
+        </div>
+        <p class="text-muted small mb-0 mt-2">@Model.Subtitle</p>
     </div>
+
+    @if (!Model.CanSubmit)
+    {
+        <div class="alert alert-warning small">
+            <i class="fa-solid fa-circle-info ms-1"></i>
+            @if (Model.IsRenter)
+            {
+                <text>يجب تسجيل استلام الغرض أولاً من صفحة «تأجيراتي» قبل رفع فحص الإرجاع.</text>
+            }
+            else
+            {
+                <text>لم يسجّل المستأجر إعادة الغرض بعد. سيظهر زر الفحص هنا تلقائياً بعد تسجيل الإعادة.</text>
+            }
+        </div>
+    }
+
+    <form asp-controller="Disputes" asp-action="SubmitInspection" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="bookingId" value="@Model.Booking.Id" />
+        <input type="hidden" name="stage" value="@((int)Model.Stage)" />
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0"><i class="fa-solid fa-images text-success ms-1"></i> صور الزوايا الست</h6>
+            <span class="text-muted small">يرجى إرفاق 6 صور حقيقية للزوايا المطلوبة</span>
+        </div>
+
+        <div class="row g-3 mb-4">
+            @for (var i = 0; i < 6; i++)
+            {
+                var preview = existingPaths.Count > i ? existingPaths[i] : null;
+                var original = originalImages.Count > i ? originalImages[i].ImagePath : null;
+                <div class="col-6 col-md-4">
+                    <div class="inspection-angle">
+                        <h6 class="fw-bold small mb-2">@angleNames[i]</h6>
+                        @if (!string.IsNullOrWhiteSpace(preview))
+                        {
+                            <img src="@preview" class="inspection-preview mb-2" alt="صورة الفحص المحفوظة" />
+                        }
+                        else if (!string.IsNullOrWhiteSpace(original))
+                        {
+                            <img src="@original" class="inspection-preview mb-2" alt="صورة الغرض الأصلية" />
+                            <div class="text-muted small mb-2">الصورة الأصلية للمقارنة</div>
+                        }
+                        <input type="file" name="inspectionPhotos" accept="image/*" class="form-control form-control-sm angle-input" required>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="border rounded-3 p-3 mb-4 bg-light">
+            <div class="form-check">
+                <input type="hidden" id="damageReportedValue" name="damageReported" value="@(damageChecked ? "true" : "false")" />
+                <input class="form-check-input" type="checkbox" id="damageReported" @(damageChecked ? "checked" : "")>
+                <label class="form-check-label small fw-bold" for="damageReported">
+                    <i class="fa-solid fa-triangle-exclamation text-danger ms-1"></i> يوجد ضرر أو مخالفة حالة الغرض
+                </label>
+            </div>
+            <div id="damageFields" class="mt-3" style="display: @(damageChecked ? "block" : "none");">
+                <label class="form-label small fw-bold">وصف الضرر</label>
+                <textarea name="damageDescription" id="damageDescription" class="form-control" rows="3" maxlength="2000"
+                          placeholder="صف مكان الضرر وتوقعه ووقت ملاحظته بالتفصيل...">@damageText</textarea>
+                <div class="form-text small">سيُفتح بلاغ ضرر مرتبط بهذا الحجز وتبقى الوديعة محتجزة لحين تسويته.</div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="text-muted small">
+                <i class="fa-solid fa-shield-halved text-success ms-1"></i>
+                لا تُطلق الوديعة إلا بعد اعتماد فحص الاستلام من المالك دون أضرار.
+            </span>
+            <button type="submit" class="btn btn-emerald px-4" @(Model.CanSubmit ? "" : "disabled")>
+                <i class="fa-solid fa-cloud-arrow-up ms-1"></i> حفظ الفحص وتقديم التقرير
+            </button>
+        </div>
+    </form>
 </div>
+
+@section Scripts {
+    <script>
+        function refreshInspection() {
+            document.querySelectorAll('.angle-input').forEach(function (input) {
+                var card = input.closest('.inspection-angle');
+                if (card) card.classList.toggle('has-file', input.files && input.files.length > 0);
+            });
+
+            var damage = document.getElementById('damageReported').checked;
+            document.getElementById('damageReportedValue').value = damage ? 'true' : 'false';
+            document.getElementById('damageFields').style.display = damage ? 'block' : 'none';
+            document.getElementById('damageDescription').required = damage;
+        }
+
+        document.querySelectorAll('.angle-input').forEach(function (input) {
+            input.addEventListener('change', refreshInspection);
+        });
+        document.getElementById('damageReported').addEventListener('change', refreshInspection);
+        refreshInspection();
+    </script>
+}

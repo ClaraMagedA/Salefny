@@ -1,0 +1,173 @@
+@model AdminCategoriesViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "إدارة تصنيفات الأغراض";
+}
+
+@if (TempData["AdminMessage"] is string message)
+{
+    <div class="alert alert-success small"><i class="fa-solid fa-circle-check ms-1"></i> @message</div>
+}
+@if (TempData["AdminError"] is string error)
+{
+    <div class="alert alert-danger small"><i class="fa-solid fa-triangle-exclamation ms-1"></i> @error</div>
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm mb-4">
+    <h5 class="fw-bold mb-3"><i class="fa-solid fa-layer-group text-success ms-2"></i> إضافة تصنيف جديد</h5>
+    <form asp-action="CreateCategory" method="post" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small fw-bold">اسم التصنيف <span class="text-danger">*</span></label>
+            <input asp-for="CreateForm.Name" class="form-control form-control-sm" placeholder="مثال: معدات تصوير" required>
+            <span asp-validation-for="CreateForm.Name" class="text-danger small"></span>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-bold">الوصف</label>
+            <input asp-for="CreateForm.Description" class="form-control form-control-sm" placeholder="وصف مختصر">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-bold">أيقونة (Font Awesome)</label>
+            <input asp-for="CreateForm.IconClass" class="form-control form-control-sm" dir="ltr" placeholder="fa-camera">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-bold">التصنيف الرئيسي</label>
+            <select asp-for="CreateForm.ParentCategoryId" class="form-select form-select-sm">
+                <option value="">— تصنيف رئيسي —</option>
+                @foreach (var parent in Model.ParentOptions)
+                {
+                    <option value="@parent.Id">@parent.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-1">
+            <label class="form-label small fw-bold">الحالة</label>
+            <select asp-for="CreateForm.IsActive" class="form-select form-select-sm">
+                <option value="true">نشط</option>
+                <option value="false">موقوف</option>
+            </select>
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-emerald btn-sm w-100"><i class="fa-solid fa-plus ms-1"></i> إضافة</button>
+        </div>
+    </form>
+</div>
+
+<div class="bg-white p-4 rounded-4 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-sitemap text-success ms-2"></i> تصنيفات الأغراض</h5>
+            <span class="text-muted small">لا يمكن حذف تصنيف مرتبط بأغراض أو له تصنيفات فرعية.</span>
+        </div>
+        <span class="badge bg-secondary">@Model.Categories.Count.ToString("N0") تصنيف</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>الاسم</th>
+                    <th>الوصف</th>
+                    <th>الأيقونة</th>
+                    <th>التصنيف الرئيسي</th>
+                    <th>الحالة</th>
+                    <th>الاستخدام</th>
+                    <th>تعديل سريع</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Categories.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted small py-4">لا توجد تصنيفات. أضف أول تصنيف من النموذج أعلاه.</td>
+                    </tr>
+                }
+                @foreach (var row in Model.Categories)
+                {
+                    var category = row.Category;
+                    <tr>
+                        <td><strong>@category.Name</strong></td>
+                        <td class="small text-muted">@(string.IsNullOrWhiteSpace(category.Description) ? "—" : category.Description)</td>
+                        <td dir="ltr" class="small">@(string.IsNullOrWhiteSpace(category.IconClass) ? "—" : category.IconClass)</td>
+                        <td class="small">@(row.ParentName ?? "—")</td>
+                        <td>
+                            @if (category.IsActive)
+                            {
+                                <span class="badge bg-success">نشط</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">موقوف</span>
+                            }
+                        </td>
+                        <td class="small">
+                            <span class="d-block">أغراض: @row.ItemsCount.ToString("N0")</span>
+                            <span class="d-block">فرعية: @row.SubCategoriesCount.ToString("N0")</span>
+                        </td>
+                        <td>
+                            <form asp-action="EditCategory" asp-route-id="@category.Id" method="post" class="d-grid gap-1" style="min-width:220px">
+                                <input type="text" name="Name" value="@category.Name" class="form-control form-control-sm" required>
+                                <div class="d-flex gap-1">
+                                    <input type="text" name="Description" value="@category.Description" class="form-control form-control-sm" placeholder="الوصف">
+                                    <input type="text" name="IconClass" value="@category.IconClass" class="form-control form-control-sm" dir="ltr" placeholder="الأيقونة">
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <select name="ParentCategoryId" class="form-select form-select-sm">
+                                        <option value="">— رئيسي —</option>
+                                        @foreach (var parent in Model.ParentOptions.Where(p => p.Id != category.Id))
+                                        {
+                                            if (parent.Id == category.ParentCategoryId)
+                                            {
+                                                <option value="@parent.Id" selected>@parent.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@parent.Id">@parent.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                    <select name="IsActive" class="form-select form-select-sm">
+                                        @if (category.IsActive)
+                                        {
+                                            <option value="true" selected>نشط</option>
+                                            <option value="false">موقوف</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="true">نشط</option>
+                                            <option value="false" selected>موقوف</option>
+                                        }
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-floppy-disk ms-1"></i> حفظ التعديلات</button>
+                            </form>
+                        </td>
+                        <td>
+                            <div class="d-grid gap-1">
+                                <form asp-action="ToggleCategoryActive" asp-route-id="@category.Id" method="post">
+                                    <button type="submit" class="btn btn-sm @(category.IsActive ? "btn-outline-warning" : "btn-outline-success") w-100">
+                                        <i class="fa-solid fa-power-off ms-1"></i> @(category.IsActive ? "إيقاف" : "تفعيل")
+                                    </button>
+                                </form>
+                                @if (row.CanDelete)
+                                {
+                                    <form asp-action="DeleteCategory" asp-route-id="@category.Id" method="post">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100"
+                                                onclick="return confirm('هل تريد حذف هذا التصنيف نهائياً؟');">
+                                            <i class="fa-solid fa-trash ms-1"></i> حذف
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small text-center">لا يمكن الحذف</span>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

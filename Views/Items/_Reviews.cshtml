@@ -1,0 +1,50 @@
+@model IEnumerable<Review>
+@{
+    var reviews = Model?.ToList() ?? new List<Review>();
+    var average = reviews.Count == 0 ? 0m : Math.Round((decimal)reviews.Average(r => r.Rating), 2);
+}
+
+<div class="border rounded-4 p-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h5 class="fw-bold mb-0"><i class="fa-solid fa-comments text-success ms-2"></i> تقييمات الغرض</h5>
+        @if (reviews.Count > 0)
+        {
+            <span class="badge bg-light text-dark border" dir="ltr">
+                <i class="fa-solid fa-star text-warning ms-1"></i> @average.ToString("0.0", CultureInfo.InvariantCulture) / 5.0
+                (@reviews.Count)
+            </span>
+        }
+    </div>
+
+    @if (!reviews.Any())
+    {
+        <p class="text-muted small mb-0">لا توجد تقييمات لهذا الغرض بعد. ستظهر هنا بعد اكتمال أول حجز.</p>
+    }
+    else
+    {
+        <div class="d-grid gap-2">
+            @foreach (var review in reviews)
+            {
+                <div class="border rounded-3 p-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <a asp-controller="Account" asp-action="PublicProfile" asp-route-id="@review.ReviewerId"
+                           class="small fw-bold text-decoration-none">
+                            @review.Reviewer?.FullName
+                        </a>
+                        <span dir="ltr" class="small">
+                            @for (var s = 1; s <= 5; s++)
+                            {
+                                <i class="fa-solid fa-star @(s <= review.Rating ? "text-warning" : "text-secondary")"></i>
+                            }
+                        </span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(review.Comment))
+                    {
+                        <p class="text-muted small mb-1 mt-2">@review.Comment</p>
+                    }
+                    <span class="text-muted small">@review.CreatedAt.ToString("d MMM yyyy")</span>
+                </div>
+            }
+        </div>
+    }
+</div>

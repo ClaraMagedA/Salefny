@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.ViewEngines;
+using SalefnyMVC.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -17,18 +18,41 @@ namespace SalefnyMVC.Models.Entities
         public string Description { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(18,2)]")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal PricePerDay { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(18,2)]")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal SecurityDeposit { get; set; }
 
         [Required]
         [MaxLength(50)]
         public string City { get; set; }
 
-        public bool IsActive { get; set; } = true;
+        [MaxLength(50)]
+        public string? Condition { get; set; }
+
+        public decimal? Latitude { get; set; }
+
+        public decimal? Longitude { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public bool IsActive { get; set; } = false;
+
+        // New listings are sent to the admin for a physical/photo quality check
+        // before they are allowed in the public souq.
+        public ListingApprovalStatus ApprovalStatus { get; set; } = ListingApprovalStatus.Pending;
+
+        public bool PhysicallyVerified { get; set; }
+        public bool HasSixClearPhotos { get; set; }
+        public bool IsUndamaged { get; set; }
+        public bool QualityAccepted { get; set; }
+
+        public DateTime? ReviewedAt { get; set; }
+
+        [MaxLength(500)]
+        public string? AdminNote { get; set; }
 
         [Required]
         public string OwnerId { get; set; }

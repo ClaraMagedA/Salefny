@@ -1,0 +1,69 @@
+@inject UserManager<ApplicationUser> UserManager
+@inject SalefnyDbContext Db
+@{
+    var active = ViewData["ActiveAccountTab"] as string;
+    var userId = UserManager.GetUserId(User);
+    var bookingCount = userId == null ? 0 : await Db.Bookings.CountAsync(b => b.RenterId == userId);
+    var listingCount = userId == null ? 0 : await Db.Items.CountAsync(i => i.OwnerId == userId);
+    var ownerRequestCount = userId == null ? 0 : await Db.Bookings.CountAsync(b => b.Item.OwnerId == userId);
+    var currentUser = userId == null ? null : await UserManager.FindByIdAsync(userId);
+    var isOwner = currentUser != null && await UserManager.IsInRoleAsync(currentUser, AppRoles.Owner);
+    var pendingOwnerUpgradeCount = userId == null
+        ? 0
+        : await Db.OwnerRequests.CountAsync(r => r.UserId == userId && r.Status == OwnerRequestStatus.Pending);
+    // The count is supplied by the controller; no DB query is added here for notifications.
+    var notificationCount = ViewBag.NotificationCount is int count ? count : 0;
+}
+
+<style>
+    .account-nav-tabs {
+        border-bottom: 2px solid #e2e8f0;
+        display: flex;
+        gap: 20px;
+        margin-bottom: 24px;
+        overflow-x: auto;
+    }
+
+    .account-nav-link {
+        text-decoration: none;
+        color: #64748b;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 0 0 12px;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+        .account-nav-link i {
+            color: var(--primary-color);
+        }
+
+        .account-nav-link:hover {
+            color: var(--primary-color);
+        }
+
+        .account-nav-link.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+</style>
+
+<div class="account-nav-tabs">
+    <a asp-controller="Account" asp-action="Profile" class="account-nav-link @(active == "Profile" ? "active" : "")"><i class="fa-solid fa-id-card ms-1"></i> البيانات الشخصية</a>
+    @if (!isOwner)
+    {
+        <a asp-controller="Account" asp-action="OwnerRequest" class="account-nav-link @(active == "OwnerRequest" ? "active" : "")"><i class="fa-solid fa-store ms-1"></i> كن مالكاً @(pendingOwnerUpgradeCount > 0 ? $"({pendingOwnerUpgradeCount})" : "")</a>
+    }
+    <a asp-controller="Bookings" asp-action="MyBookings" class="account-nav-link @(active == "MyBookings" ? "active" : "")"><i class="fa-solid fa-box ms-1"></i> تأجيراتي ونشاطي (@bookingCount)</a>
+    <a asp-controller="Account" asp-action="MyListings" class="account-nav-link @(active == "MyListings" ? "active" : "")"><i class="fa-solid fa-store ms-1"></i> منتجاتي المعروضة (@listingCount)</a>
+    <a asp-controller="Bookings" asp-action="OwnerRequests" class="account-nav-link @(active == "OwnerRequests" ? "active" : "")"><i class="fa-solid fa-inbox ms-1"></i> طلبات على منتجاتي (@ownerRequestCount)</a>
+    <a asp-controller="Notifications" asp-action="Index" class="account-nav-link @(active == "Notifications" ? "active" : "")">
+        <i class="fa-solid fa-bell ms-1"></i> الإشعارات
+        @if (notificationCount > 0)
+        {
+            <span class="badge rounded-pill bg-danger" dir="ltr">@notificationCount</span>
+        }
+    </a>
+</div>
+

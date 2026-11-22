@@ -1,0 +1,46 @@
+@{
+    ViewData["Title"] = "تأكيد تسجيل الدخول";
+    var sent = ViewBag.Sent is bool b && b;
+    var demoOtp = ViewBag.DemoOtp as string;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="bg-white p-4 rounded-4 shadow-sm">
+            <h4 class="fw-bold text-center mb-3"><span class="text-success">سَلِّفني</span> — تأكيد تسجيل الدخول</h4>
+
+            @if (sent)
+            {
+                <div class="alert alert-success small">
+                    <i class="fa-solid fa-envelope-circle-check ms-1"></i>
+                    أرسلنا رمز تحقق من 6 أرقام إلى بريدك الإلكتروني
+                    <strong dir="ltr">@ViewBag.Email</strong>.
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning small">
+                    <i class="fa-solid fa-triangle-exclamation ms-1"></i>
+                    <strong>وضع تجريبي:</strong> خدمة SMTP غير مُعدّة في <code>appsettings.json</code>،
+                    لذا لم يُرسل أي بريد. الرمز يظهر هنا لمحاكاة الرسالة.
+                    <div class="mt-2 fs-4 fw-bold text-center" dir="ltr" style="letter-spacing: 8px;">@demoOtp</div>
+                </div>
+            }
+
+            <form asp-action="LoginOtp" method="post">
+                <div asp-validation-summary="All" class="text-danger small mb-3"></div>
+                <div class="mb-3" style="max-width: 320px;">
+                    <label for="otp" class="form-label small fw-bold">رمز التحقق (OTP)</label>
+                    <input id="otp" name="otp" type="text" inputmode="numeric" maxlength="6"
+                           class="form-control text-center fs-5" placeholder="000000" dir="ltr"
+                           autocomplete="one-time-code" required>
+                    <div class="form-text small">الرمز صالح لمدة 5 دقائق.</div>
+                </div>
+                <button type="submit" class="btn btn-emerald px-4">
+                    <i class="fa-solid fa-circle-check ms-1"></i> تأكيد ودخول
+                </button>
+                <a asp-action="Login" class="btn btn-outline-secondary">العودة لتسجيل الدخول</a>
+            </form>
+        </div>
+    </div>
+</div>

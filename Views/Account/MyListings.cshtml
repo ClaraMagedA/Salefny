@@ -1,42 +1,133 @@
-﻿@{
+﻿@model IEnumerable<Item>
+@{
     ViewData["Title"] = "منتجاتي المعروضة للتأجير";
+    ViewData["ActiveAccountTab"] = "MyListings";
 }
 
 <div class="bg-white p-4 rounded-4 shadow-sm">
+    @await Html.PartialAsync("_AccountNav")
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success small mt-3">
+            <i class="fa-solid fa-circle-check ms-1"></i> @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger small mt-3">
+            <i class="fa-solid fa-circle-exclamation ms-1"></i> @TempData["Error"]
+        </div>
+    }
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h5 class="fw-bold mb-0"><i class="fa-solid fa-store text-success ms-2"></i> أدواتي ومنتجاتي المعروضة للتأجير</h5>
         <a asp-controller="Items" asp-action="Create" class="btn btn-emerald btn-sm">+ إضافة منتج جديد</a>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>المنتج المعروض</th>
-                    <th>سعر التأجير اليومي</th>
-                    <th>الضمان المطلوب</th>
-                    <th>المستأجر الحالي</th>
-                    <th>حالة العرض</th>
-                    <th>الإجراءات والتحقق</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="bg-light rounded p-2 text-center" style="width: 45px; height: 45px;"><i class="fa-solid fa-camera"></i></div>
-                            <div><strong>طائرة درون DJI Mavic Air 2S</strong><span class="text-muted small d-block">القسم: معدات تصوير سينمائي</span></div>
-                        </div>
-                    </td>
-                    <td>650 ج.م / يوم</td>
-                    <td>3,000 ج.م</td>
-                    <td>أحمد محمود (Nasr City)</td>
-                    <td><span class="badge bg-warning text-dark">مؤجر حالياً</span></td>
-                    <td>
-                        <a asp-controller="Disputes" asp-action="InspectionStudio" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-triangle-exclamation ms-1"></i> فتح تحقيق في ضرر</a>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    @if (Model == null || !Model.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="fa-solid fa-box-open fa-3x mb-3 d-block opacity-50"></i>
+            <p class="mb-3">لم تقم بإضافة أي منتج للإيجار بعد.</p>
+            <a asp-controller="Items" asp-action="Create" class="btn btn-emerald btn-sm">أضف أول منتج</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>المنتج المعروض</th>
+                        <th>سعر التأجير اليومي</th>
+                        <th>الضمان المطلوب</th>
+                        <th>المدينة</th>
+                        <th>حالة العرض</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var toggleLabel = item.IsActive ? "إزالة من السوق" : "إعادة للسوق";
+                        var toggleIcon = item.IsActive ? "fa-ban" : "fa-store";
+                        var isApproved = item.ApprovalStatus == ListingApprovalStatus.Approved;
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="bg-light rounded p-2 text-center" style="width: 45px; height: 45px;"><i class="fa-solid fa-camera"></i></div>
+                                    <div>
+                                        <strong>@item.Title</strong>
+                                        <span class="text-muted small d-block">القسم: @item.Category?.Name</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@item.PricePerDay.ToString("N0") ج.م / يوم</td>
+                            <td>@item.SecurityDeposit.ToString("N0") ج.م</td>
+                            <td>@item.City</td>
+                            <td>
+                                @if (item.ApprovalStatus == ListingApprovalStatus.Pending)
+                                {
+                                    <span class="badge bg-warning text-dark"><i class="fa-solid fa-hourglass-half ms-1"></i> قيد مراجعة الإدارة</span>
+                                    <span class="text-muted small d-block mt-1">غير منشور في السوق بعد</span>
+                                }
+                                else if (item.ApprovalStatus == ListingApprovalStatus.Rejected)
+                                {
+                                    <span class="badge bg-danger">مرفوض</span>
+                                    @if (!string.IsNullOrWhiteSpace(item.AdminNote))
+                                    {
+                                        <span class="text-muted small d-block mt-1">@item.AdminNote</span>
+                                    }
+                                }
+                                else if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">متاح للإيجار</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">غير متاح</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm">
+                                        <i class="fa-solid fa-eye ms-1"></i> التفاصيل
+                                    </a>
+                                    <a asp-controller="Items" asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fa-solid fa-pen ms-1"></i> تعديل
+                                    </a>
+                                    <a asp-controller="Items" asp-action="ManageAvailability" asp-route-itemId="@item.Id" class="btn btn-outline-info btn-sm">
+                                        <i class="fa-solid fa-calendar-days ms-1"></i> إدارة التوفر
+                                    </a>
+                                    @if (isApproved)
+                                    {
+                                        <form asp-controller="Items" asp-action="ToggleActive" asp-route-id="@item.Id" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                                <i class="fa-solid @toggleIcon ms-1"></i> @toggleLabel
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (item.ApprovalStatus == ListingApprovalStatus.Rejected)
+                                    {
+                                        <form asp-controller="Items" asp-action="ResubmitForReview" asp-route-id="@item.Id" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                                                <i class="fa-solid fa-rotate-right ms-1"></i> إعادة للمراجعة
+                                            </button>
+                                        </form>
+                                    }
+                                    <form asp-controller="Items" asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
+                                          onsubmit="return confirm('هل تريد حذف هذا الغرض نهائياً؟ لا يمكن التراجع.');">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fa-solid fa-trash ms-1"></i> حذف
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>

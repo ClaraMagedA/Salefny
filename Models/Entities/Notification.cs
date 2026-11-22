@@ -13,6 +13,12 @@ namespace SalefnyMVC.Models.Entities
         [MaxLength(255)]
         public string Message { get; set; }
 
+        [MaxLength(100)]
+        public string? EventType { get; set; }
+
+        [MaxLength(300)]
+        public string? ActionUrl { get; set; }
+
         public bool IsRead { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

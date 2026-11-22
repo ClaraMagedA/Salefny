@@ -1,0 +1,372 @@
+@model VerificationViewModel
+@{
+    ViewData["Title"] = "توثيق الهوية الوطنية";
+    ViewData["ActiveAccountTab"] = "Profile";
+    var profileName = ViewBag.ProfileFullName as string ?? string.Empty;
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm mb-5">
+    @await Html.PartialAsync("_AccountNav")
+
+    <div class="mb-4">
+        <h4 class="fw-bold mb-1"><i class="fa-solid fa-id-card text-success ms-2"></i> توثيق الهوية الوطنية (eKYC)</h4>
+        <p class="text-muted small mb-0">افتح الكاميرا والتقط صورة واضحة للبطاقة أو الجواز. سيتم قراءة الرقم وتاريخ الانتهاء والاسم من الصورة، ثم التحقق من مطابقة الاسم لاسم ملفك الشخصي.</p>
+        <div class="alert alert-warning small py-2 px-3 mt-3 mb-0">
+            <i class="fa-solid fa-clock ms-1"></i> بعد تأكيد رمز الهاتف تُرسل الهوية <strong>قيد مراجعة الإدارة</strong>، ولا يُفعّل شعار التوثيق إلا بعد اعتمادها.
+        </div>
+    </div>
+
+    <form asp-action="Verify" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="All" class="text-danger small mb-3"></div>
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">نوع المستند</label>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" asp-for="DocumentType" value="NationalId" id="docNational">
+                            <label class="form-check-label small" for="docNational">بطاقة الرقم القومي (14 رقماً)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" asp-for="DocumentType" value="Passport" id="docPassport">
+                            <label class="form-check-label small" for="docPassport">جواز السفر</label>
+                        </div>
+                    </div>
+                    <span asp-validation-for="DocumentType" class="text-danger small"></span>
+                </div>
+
+                <div class="border rounded-3 p-3 bg-light">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <h6 class="fw-bold mb-0"><i class="fa-solid fa-camera ms-2"></i> التقاط صورة المستند</h6>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="button" id="startCamera" class="btn btn-outline-primary btn-sm">
+                                <i class="fa-solid fa-video ms-1"></i> فتح الكاميرا
+                            </button>
+                            <button type="button" id="capturePhoto" class="btn btn-emerald btn-sm" disabled>
+                                <i class="fa-solid fa-camera-retro ms-1"></i> التقاط الصورة
+                            </button>
+                            <button type="button" id="retakePhoto" class="btn btn-outline-secondary btn-sm d-none">
+                                <i class="fa-solid fa-rotate-right ms-1"></i> إعادة التقاط
+                            </button>
+                        </div>
+                    </div>
+
+                    <video id="documentVideo" class="w-100 rounded d-none" autoplay playsinline muted style="max-height:320px;object-fit:contain;background:#000;"></video>
+                    <canvas id="documentCanvas" class="d-none"></canvas>
+                    <img id="documentPreview" class="img-fluid rounded border mt-2 d-none" alt="صورة المستند الملتقطة" style="max-height:320px;object-fit:contain;" />
+
+                    <div class="mt-3">
+                        <label asp-for="DocumentImage" class="form-label small fw-bold mb-1"></label>
+                        <input asp-for="DocumentImage" id="documentFile" class="form-control form-control-sm" accept="image/*" capture="environment">
+                        <span asp-validation-for="DocumentImage" class="text-danger small"></span>
+                        <div class="form-text small">إذا لم تعمل الكاميرا، اختر صورة واضحة للمستند من جهازك.</div>
+                    </div>
+
+                    <div id="cameraStatus" class="alert alert-info small py-2 px-3 mt-3 mb-0">
+                        <i class="fa-solid fa-circle-info ms-1"></i> اضغط «فتح الكاميرا» أو اختر صورة من الجهاز.
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="border rounded-3 p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0"><i class="fa-solid fa-scan ms-2"></i> البيانات المقروءة من الصورة</h6>
+                        <button type="button" id="editScan" class="btn btn-link btn-sm p-0">تعديل القراءة</button>
+                    </div>
+                    <p class="text-muted small">تُقرأ هذه الحقول تلقائياً. يمكنك تعديلها إذا لم تقرأ الكاميرا بعض البيانات بوضوح.</p>
+
+                    <div class="mb-3">
+                        <label asp-for="DocumentNumber" class="form-label small fw-bold"></label>
+                        <input asp-for="DocumentNumber" id="scanNumber" class="form-control" dir="ltr" readonly>
+                        <span asp-validation-for="DocumentNumber" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ExpiryDate" class="form-label small fw-bold"></label>
+                        <input asp-for="ExpiryDate" id="scanExpiry" class="form-control" type="date" readonly>
+                        <span asp-validation-for="ExpiryDate" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DocumentHolderName" class="form-label small fw-bold"></label>
+                        <input asp-for="DocumentHolderName" id="scanName" class="form-control" readonly>
+                        <span asp-validation-for="DocumentHolderName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="alert alert-light small py-2 px-3 mb-0">
+                        <i class="fa-solid fa-user-check ms-1"></i> الاسم المطلوب مطابقته في ملفك الشخصي:
+                        <strong>@profileName</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 mb-4">
+            <label asp-for="PhoneNumber" class="form-label small fw-bold"></label>
+            <input asp-for="PhoneNumber" class="form-control" placeholder="01xxxxxxxxx" dir="ltr">
+            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+            <div class="form-text small">سيُستخدم الرقم لإرسال رمز التحقق (OTP) وتأكيد ملكية الرقم.</div>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="submit" id="submitVerify" class="btn btn-emerald px-4" disabled>
+                <i class="fa-solid fa-paper-plane ms-1"></i> إرسال رمز التحقق
+            </button>
+            <a asp-controller="Account" asp-action="Profile" class="btn btn-outline-secondary">إلغاء</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+    <script>
+        (function () {
+            const video = document.getElementById('documentVideo');
+            const canvas = document.getElementById('documentCanvas');
+            const preview = document.getElementById('documentPreview');
+            const fileInput = document.getElementById('documentFile');
+            const startBtn = document.getElementById('startCamera');
+            const captureBtn = document.getElementById('capturePhoto');
+            const retakeBtn = document.getElementById('retakePhoto');
+            const statusBox = document.getElementById('cameraStatus');
+            const numberInput = document.getElementById('scanNumber');
+            const expiryInput = document.getElementById('scanExpiry');
+            const nameInput = document.getElementById('scanName');
+            const editBtn = document.getElementById('editScan');
+            const submitBtn = document.getElementById('submitVerify');
+            const docRadios = document.querySelectorAll('input[name="DocumentType"]');
+
+            const expectedName = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(profileName ?? string.Empty));
+
+            let stream = null;
+            let previewUrl = null;
+
+            function setStatus(message, type) {
+                statusBox.className = 'alert small py-2 px-3 mt-3 mb-0 alert-' + (type || 'info');
+                statusBox.innerHTML = '<i class="fa-solid fa-circle-info ms-1"></i> ' + message;
+            }
+
+            function normalizeDigits(value) {
+                return (value || '')
+                    .replace(/[\u0660-\u0669]/g, c => String.fromCharCode(48 + (c.charCodeAt(0) - 0x0660)))
+                    .replace(/[\u06F0-\u06F9]/g, c => String.fromCharCode(48 + (c.charCodeAt(0) - 0x06F0)));
+            }
+
+            function normalizeName(value) {
+                return normalizeDigits(value || '')
+                    .replace(/[\u0640]/g, '')
+                    .replace(/[\u0622\u0623\u0625]/g, '\u0627')
+                    .replace(/\u0629/g, '\u0647')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            }
+
+            function pad(value) {
+                return String(value).padStart(2, '0');
+            }
+
+            function parseExpiry(text) {
+                const normalized = normalizeDigits(text);
+                let match = normalized.match(/(\d{1,2})[\/\-.]\s*(\d{1,2})[\/\-.]\s*(\d{4})/);
+                if (match) {
+                    const a = parseInt(match[1], 10);
+                    const b = parseInt(match[2], 10);
+                    const year = match[3];
+                    if (a > 12 && b <= 12) return year + '-' + pad(b) + '-' + pad(a);
+                    if (b > 12 && a <= 12) return year + '-' + pad(a) + '-' + pad(b);
+                    return year + '-' + pad(b) + '-' + pad(a);
+                }
+
+                match = normalized.match(/(\d{4})[\/\-.]\s*(\d{1,2})[\/\-.]\s*(\d{1,2})/);
+                if (match) return match[1] + '-' + pad(match[2]) + '-' + pad(match[3]);
+
+                return '';
+            }
+
+            function guessName(text) {
+                const expected = normalizeName(expectedName);
+                const compactText = normalizeName(text).replace(/\s/g, '');
+                const compactExpected = expected.replace(/\s/g, '');
+                if (compactExpected && compactText.indexOf(compactExpected) >= 0) return expected;
+
+                const lines = (text || '').split(/\r?\n/)
+                    .map(line => line.trim())
+                    .filter(line => /[\u0600-\u06FF]/.test(line) && !/\d/.test(line) && line.length >= 5);
+                return lines.length ? normalizeName(lines[0]) : '';
+            }
+
+            function updateSubmitState() {
+                submitBtn.disabled = !(fileInput.files && fileInput.files.length &&
+                    numberInput.value.trim() && expiryInput.value && nameInput.value.trim());
+            }
+
+            function enableManualEdit(message) {
+                [numberInput, expiryInput, nameInput].forEach(input => { input.readOnly = false; });
+                editBtn.textContent = 'تم تفعيل التعديل اليدوي';
+                if (message) setStatus(message, 'warning');
+            }
+
+            function clearScan() {
+                numberInput.value = '';
+                expiryInput.value = '';
+                nameInput.value = '';
+                updateSubmitState();
+            }
+
+            function stopCamera() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                }
+                video.srcObject = null;
+                video.classList.add('d-none');
+                captureBtn.disabled = true;
+                startBtn.disabled = false;
+            }
+
+            async function startCamera() {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    setStatus('الكاميرا غير متاحة في هذا المتصفح. اختر صورة من الجهاز.', 'warning');
+                    fileInput.focus();
+                    return;
+                }
+
+                try {
+                    stopCamera();
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: { ideal: 'environment' } },
+                        audio: false
+                    });
+                    video.srcObject = stream;
+                    video.classList.remove('d-none');
+                    await video.play();
+                    captureBtn.disabled = false;
+                    startBtn.disabled = true;
+                    setStatus('الكاميرا مفتوحة. ضع المستند داخل الإطار ثم اضغط «التقاط الصورة».', 'success');
+                } catch (error) {
+                    setStatus('تعذر فتح الكاميرا. اختر صورة واضحة للمستند من جهازك.', 'warning');
+                    fileInput.focus();
+                }
+            }
+
+            async function capturePhoto() {
+                if (!video.videoWidth || !video.videoHeight) {
+                    setStatus('الكاميرا لم تبدأ بعد. حاول مرة أخرى.', 'warning');
+                    return;
+                }
+
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+                if (!blob) {
+                    setStatus('تعذر التقاط الصورة. حاول مرة أخرى.', 'danger');
+                    return;
+                }
+
+                const file = new File([blob], 'document.jpg', { type: 'image/jpeg' });
+                const transfer = new DataTransfer();
+                transfer.items.add(file);
+                fileInput.files = transfer.files;
+
+                if (previewUrl) URL.revokeObjectURL(previewUrl);
+                previewUrl = URL.createObjectURL(blob);
+                preview.src = previewUrl;
+                preview.classList.remove('d-none');
+
+                stopCamera();
+                captureBtn.disabled = true;
+                retakeBtn.classList.remove('d-none');
+                updateSubmitState();
+                await scanDocument(blob);
+            }
+
+            async function scanDocument(image) {
+                clearScan();
+                setStatus('جاري قراءة بيانات المستند من الصورة...', 'info');
+
+                if (!window.Tesseract || !Tesseract.createWorker) {
+                    enableManualEdit('المسح الآلي غير متاح حالياً. اضغط «تعديل القراءة» وأدخل البيانات الظاهرة على المستند.');
+                    return;
+                }
+
+                try {
+                    const worker = await Tesseract.createWorker('ara+eng');
+                    const result = await worker.recognize(image);
+                    await worker.terminate();
+
+                    const text = (result && result.data && result.data.text) || '';
+                    const normalized = normalizeDigits(text);
+                    const idMatch = normalized.match(/\d{14}/);
+                    numberInput.value = idMatch ? idMatch[0] : '';
+                    expiryInput.value = parseExpiry(text);
+                    nameInput.value = guessName(text);
+
+                    updateSubmitState();
+
+                    if (numberInput.value && expiryInput.value && nameInput.value) {
+                        setStatus('تمت قراءة البيانات من الصورة. راجع الحقول ثم أرسل رمز التحقق.', 'success');
+                    } else {
+                        enableManualEdit('تعذرت قراءة بعض البيانات بوضوح. عدّل الحقول أو أعد التقاط الصورة.');
+                    }
+                } catch (error) {
+                    enableManualEdit('تعذرت قراءة الصورة آلياً. عدّل الحقول يدوياً أو أعد التقاط الصورة.');
+                }
+            }
+
+            function retake() {
+                stopCamera();
+                fileInput.value = '';
+                if (previewUrl) URL.revokeObjectURL(previewUrl);
+                previewUrl = null;
+                preview.src = '';
+                preview.classList.add('d-none');
+                retakeBtn.classList.add('d-none');
+                clearScan();
+                setStatus('اضغط «فتح الكاميرا» لالتقاط صورة جديدة.', 'info');
+            }
+
+            startBtn.addEventListener('click', startCamera);
+            captureBtn.addEventListener('click', capturePhoto);
+            retakeBtn.addEventListener('click', retake);
+
+            fileInput.addEventListener('change', async function () {
+                if (!fileInput.files || !fileInput.files.length) {
+                    clearScan();
+                    updateSubmitState();
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                if (previewUrl) URL.revokeObjectURL(previewUrl);
+                previewUrl = URL.createObjectURL(file);
+                preview.src = previewUrl;
+                preview.classList.remove('d-none');
+                retakeBtn.classList.remove('d-none');
+                await scanDocument(file);
+            });
+
+            editBtn.addEventListener('click', function () {
+                [numberInput, expiryInput, nameInput].forEach(input => { input.readOnly = false; });
+                editBtn.textContent = 'تعديل مفعل';
+            });
+
+            [numberInput, expiryInput, nameInput].forEach(input => {
+                input.addEventListener('input', updateSubmitState);
+                input.addEventListener('change', updateSubmitState);
+            });
+
+            docRadios.forEach(radio => {
+                radio.addEventListener('change', function () {
+                    retake();
+                    setStatus('تم تغيير نوع المستند. التقط صورة جديدة للنوع المختار.', 'info');
+                });
+            });
+
+            updateSubmitState();
+        })();
+    </script>
+}

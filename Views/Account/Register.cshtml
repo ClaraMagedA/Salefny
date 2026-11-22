@@ -7,15 +7,16 @@
         <div class="bg-white p-4 rounded-4 shadow-sm">
             <h3 class="fw-bold text-center mb-4">انضم إلى مجتمع <span class="text-success">سَلِّفني</span></h3>
             <form method="post">
+                <div asp-validation-summary="All" class="text-danger small mb-3"></div>
                 <div class="mb-3">
                     <label class="form-label small fw-bold">الاسم الكامل</label>
-                    <input type="text" name="FullName" class="form-control" placeholder="أحمد محمد" required>
+                    <input type="text" name="FullName" value="@ViewBag.FullName" class="form-control" placeholder="أحمد محمد" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label small fw-bold">البريد الإلكتروني</label>
-                    <input type="email" name="Email" class="form-control" required>
+                    <input type="email" name="Email" value="@ViewBag.Email" class="form-control" placeholder="name@example.com" required>
                 </div>
-                <div class="row g-2 mb-3">
+                <div class="row g-2 mb-2">
                     <div class="col-md-6">
                         <label class="form-label small fw-bold">كلمة المرور</label>
                         <input type="password" name="Password" class="form-control" required>
@@ -25,12 +26,13 @@
                         <input type="password" name="ConfirmPassword" class="form-control" required>
                     </div>
                 </div>
+                <p class="text-muted small mb-3"><i class="fa-solid fa-circle-info ms-1"></i> يجب ألا تقل كلمة المرور عن 6 أحرف وتحتوي على رقم واحد على الأقل.</p>
                 <div class="mb-4">
                     <label class="form-label small fw-bold">المحافظة</label>
                     <select name="City" class="form-select">
-                        <option value="Cairo">القاهرة</option>
-                        <option value="Giza">الجيزة</option>
-                        <option value="Alexandria">الإسكندرية</option>
+                        <option value="Cairo" selected="@(ViewBag.City == "Cairo" ? "selected" : null)">القاهرة</option>
+                        <option value="Giza" selected="@(ViewBag.City == "Giza" ? "selected" : null)">الجيزة</option>
+                        <option value="Alexandria" selected="@(ViewBag.City == "Alexandria" ? "selected" : null)">الإسكندرية</option>
                     </select>
                 </div>
                 <button type="submit" class="btn btn-emerald w-100 py-2">تسجيل الحساب</button>

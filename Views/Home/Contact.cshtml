@@ -1,0 +1,39 @@
+@{
+    ViewData["Title"] = "اتصل بنا";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm">
+            <h3 class="fw-bold mb-3"><i class="fa-solid fa-headset text-success ms-2"></i> تواصل معنا</h3>
+            <p class="text-muted">
+                لأي استفسار عن الحجوزات، أو للإبلاغ عن مشكلة في غرض أو مستأجر، يمكنك التواصل مع فريق سَلِّفني عبر الوسائل التالية.
+            </p>
+
+            <div class="row g-3 my-4">
+                <div class="col-md-6">
+                    <div class="border rounded-3 p-3 h-100">
+                        <span class="text-muted small d-block">البريد الإلكتروني</span>
+                        <strong dir="ltr">support@salefny.local</strong>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="border rounded-3 p-3 h-100">
+                        <span class="text-muted small d-block">ساعات العمل</span>
+                        <strong>السبت — الخميس، 9 صباحاً حتى 5 مساءً</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info small">
+                <i class="fa-solid fa-circle-info ms-1"></i>
+        في حال وجود نزاع على حجز، استخدم صفحة <a asp-controller="Disputes" asp-action="InspectionStudio" class="alert-link">فحص الإرجاع والإبلاغ عن ضرر</a>
+                لإرفاق الصور والفحص المطلوب، وسيقوم فريق التحكيم بمراجعة الحالة.
+            </div>
+
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-right ms-1"></i> العودة للرئيسية
+            </a>
+        </div>
+    </div>
+</div>

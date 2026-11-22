@@ -1,0 +1,141 @@
+@model List<Item>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "مراجعة الأغراض قبل النشر";
+    var pendingCount = Model.Count(i => i.ApprovalStatus == ListingApprovalStatus.Pending);
+}
+
+@if (TempData["AdminMessage"] is string message)
+{
+    <div class="alert alert-success small"><i class="fa-solid fa-circle-check ms-1"></i> @message</div>
+}
+@if (TempData["AdminError"] is string error)
+{
+    <div class="alert alert-danger small"><i class="fa-solid fa-triangle-exclamation ms-1"></i> @error</div>
+}
+
+<div class="bg-white p-4 rounded-4 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-clipboard-check text-success ms-2"></i> مراجعة الأغراض قبل نشرها في السوق</h5>
+            <span class="text-muted small">يجب التأكد من وجود المنتج فعلياً، وضوح الصور الست، خلوه من التلف، وجودته المقبولة.</span>
+        </div>
+        <span class="badge bg-warning text-dark">قيد المراجعة: @pendingCount</span>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info small mb-0">لا توجد أغراض مقدمة للمراجعة حتى الآن.</div>
+    }
+    else
+    {
+        <div class="d-grid gap-4">
+            @foreach (var item in Model)
+            {
+                var images = item.ItemImages?.OrderBy(i => i.AngleIndex).ToList() ?? new List<ItemImage>();
+                var isPending = item.ApprovalStatus == ListingApprovalStatus.Pending;
+
+                <div class="border rounded-4 p-3 p-md-4">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                        <div>
+                            <h6 class="fw-bold mb-1">@item.Title</h6>
+                            <div class="text-muted small">
+                                @item.Category?.Name • @item.City •
+                                @item.PricePerDay.ToString("N0") ج.م / يوم •
+                                المالك: @item.Owner?.FullName
+                            </div>
+                        </div>
+                        @if (isPending)
+                        {
+                            <span class="badge bg-warning text-dark">قيد المراجعة</span>
+                        }
+                        else if (item.ApprovalStatus == ListingApprovalStatus.Approved)
+                        {
+                            <span class="badge bg-success">مُعتمد ومنشور</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">مرفوض</span>
+                        }
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        @for (var angle = 1; angle <= 6; angle++)
+                        {
+                            var image = images.FirstOrDefault(i => i.AngleIndex == angle);
+                            <div class="col-6 col-md-4 col-lg-2 text-center">
+                                @if (image != null)
+                                {
+                                    <img src="@image.ImagePath" alt="الزاوية @angle" class="img-fluid rounded border" style="height:110px;width:100%;object-fit:cover;">
+                                }
+                                else
+                                {
+                                    <div class="bg-light rounded border d-grid place-items-center" style="height:110px;">
+                                        <span class="text-muted small">لا توجد صورة للزاوية @angle</span>
+                                    </div>
+                                }
+                                <div class="small fw-bold mt-1">الزاوية @angle</div>
+                            </div>
+                        }
+                    </div>
+
+                    @if (isPending)
+                    {
+                        <form asp-action="ApproveListing" asp-route-id="@item.Id" method="post">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="physicallyVerified" value="true" id="pv-@item.Id" required>
+                                        <label class="form-check-label small fw-bold" for="pv-@item.Id">المنتج موجود فعلياً</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="hasSixClearPhotos" value="true" id="sp-@item.Id" required>
+                                        <label class="form-check-label small fw-bold" for="sp-@item.Id">الصور الست واضحة ومكتملة</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="isUndamaged" value="true" id="ud-@item.Id" required>
+                                        <label class="form-check-label small fw-bold" for="ud-@item.Id">المنتج غير تالف</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="qualityAccepted" value="true" id="qa-@item.Id" required>
+                                        <label class="form-check-label small fw-bold" for="qa-@item.Id">الجودة مقبولة</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <input type="text" name="adminNote" class="form-control form-control-sm" style="max-width:320px" placeholder="ملاحظة المراجعة (اختياري)">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="fa-solid fa-check ms-1"></i> اعتماد ونشر في السوق
+                                </button>
+                            </div>
+                        </form>
+
+                        <form asp-action="RejectListing" asp-route-id="@item.Id" method="post" class="d-flex flex-wrap gap-2 mt-3">
+                            <input type="text" name="adminNote" class="form-control form-control-sm" style="max-width:320px" placeholder="سبب الرفض" required>
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="fa-solid fa-xmark ms-1"></i> رفض الغرض
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="small text-muted">
+                            <i class="fa-solid fa-clock-rotate-left ms-1"></i>
+                            تمت المراجعة في @item.ReviewedAt?.ToLocalTime().ToString("yyyy/MM/dd HH:mm")
+                            @if (!string.IsNullOrWhiteSpace(item.AdminNote))
+                            {
+                                <span>— @item.AdminNote</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

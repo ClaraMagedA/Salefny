@@ -1,5 +1,24 @@
-﻿@{
+﻿@model Item
+@using SalefnyMVC.Services
+@{
     ViewData["Title"] = "حجز الغرض والدفع الآمن";
+    var image = Model.ItemImages?.OrderBy(i => i.AngleIndex).FirstOrDefault()?.ImagePath
+                ?? "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=100&q=80";
+
+    var startRaw = ViewBag.StartDate as string ?? DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+    var endRaw = ViewBag.EndDate as string ?? DateTime.Today.AddDays(3).ToString("yyyy-MM-dd");
+    var start = DateTime.TryParse(startRaw, out var parsedStart) ? parsedStart : DateTime.Today.AddDays(1);
+    var end = DateTime.TryParse(endRaw, out var parsedEnd) && parsedEnd.Date >= start.Date ? parsedEnd : start.AddDays(2);
+    var days = BusinessRules.RentalDays(start, end);
+    var rent = BusinessRules.RentalTotal(days, Model.PricePerDay);
+    var fee = rent * 0.10m;
+    var total = rent + fee + Model.SecurityDeposit;
+
+    var selectedDelivery = ViewBag.DeliveryMethod as string ?? "";
+    var selectedPayment = ViewBag.PaymentMethod as string ?? "";
+    var deliveryDetails = ViewBag.DeliveryDetails as string ?? "";
+    var paymentReference = ViewBag.PaymentReference as string ?? "";
+    var renterNote = ViewBag.RenterNote as string ?? "";
 }
 
 <style>
@@ -9,6 +28,25 @@
         border-radius: 16px;
         padding: 24px;
     }
+
+    .choice-card {
+        cursor: pointer;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        background: #f8fafc;
+        transition: all .15s ease;
+    }
+
+        .choice-card:hover {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .choice-card.selected {
+            border-color: #10b981;
+            background: #ecfdf5;
+            box-shadow: 0 0 0 2px rgba(16,185,129,.15);
+        }
 </style>
 
 <div class="row justify-content-center">
@@ -16,94 +54,152 @@
         <div class="bg-white p-4 rounded-4 shadow-sm">
             <h5 class="fw-bold mb-4"><i class="fa-solid fa-circle-check text-success ms-2"></i> تأكيد طلب استعارة الغرض والوديعة</h5>
 
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger small">
+                    <i class="fa-solid fa-circle-exclamation ms-1"></i> @TempData["Error"]
+                </div>
+            }
+
             <!-- Item Header -->
             <div class="d-flex align-items-center gap-3 bg-light p-3 rounded-3 mb-4">
-                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=100&q=80" class="rounded" alt="camera" style="width: 70px; height: 70px; object-fit: cover;">
+                <img src="@image" class="rounded" alt="@Model.Title" style="width: 70px; height: 70px; object-fit: cover;">
                 <div>
-                    <span class="badge bg-success mb-1">تصوير وسينما</span>
-                    <h6 class="fw-bold mb-1">كاميرا Canon EOS R6 Mark II + عدسة RF 24-70mm</h6>
-                    <span class="text-muted small"><i class="fa-solid fa-location-dot ms-1"></i> القاهرة - المعادي | المالك: أحمد م. (موثق)</span>
+                    <span class="badge bg-success mb-1">@Model.Category?.Name</span>
+                    <h6 class="fw-bold mb-1">@Model.Title</h6>
+                    <span class="text-muted small">
+                        <i class="fa-solid fa-location-dot ms-1"></i> @Model.City | المالك: @Model.Owner?.FullName
+                        @if (Model.Owner?.IsVerified == true)
+                        {
+                            <span class="badge-verified">موثق (eKYC)</span>
+                        }
+                    </span>
                 </div>
             </div>
 
             <form asp-controller="Bookings" asp-action="ConfirmBooking" method="post">
+                <input type="hidden" name="itemId" value="@Model.Id" />
+
                 <!-- Dates -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <label class="form-label small fw-bold">تاريخ بدء الاستلام</label>
-                        <input type="date" name="StartDate" class="form-control" value="2026-10-25">
+                        <input type="date" name="StartDate" id="startDate" class="form-control" value="@start.ToString("yyyy-MM-dd")"
+                               min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                               max="@DateTime.Today.AddDays(BusinessRules.MaxAdvanceDays).ToString("yyyy-MM-dd")" required>
+                        <div class="form-text small">يُسمح بالحجز حتى @BusinessRules.MaxAdvanceDays يوماً مقدماً.</div>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label small fw-bold">تاريخ الإرجاع</label>
-                        <input type="date" name="EndDate" class="form-control" value="2026-10-27">
+                        <label class="form-label small fw-bold">تاريخ الإرجاع (يوم الاستلام محسوب ضمن المدة)</label>
+                        <input type="date" name="EndDate" id="endDate" class="form-control" value="@end.ToString("yyyy-MM-dd")"
+                               min="@start.ToString("yyyy-MM-dd")"
+                               max="@start.AddDays(BusinessRules.MaxBookingDays - 1).ToString("yyyy-MM-dd")" required>
+                        <div class="form-text small">المدة القصوى @BusinessRules.MaxBookingDays يوماً.</div>
                     </div>
                 </div>
 
                 <!-- Delivery Method -->
-                <label class="form-label small fw-bold">طريقة التسليم والاستلام المباشر</label>
-                <div class="row g-3 mb-4">
+                <label class="form-label small fw-bold">طريقة التسليم والاستلام</label>
+                <div class="row g-3 mb-3">
                     <div class="col-md-6">
-                        <div class="border rounded-3 p-3 bg-light d-flex align-items-center gap-2">
-                            <input type="radio" name="deliveryMethod" id="d1" value="Handover" checked>
-                            <label for="d1" class="small fw-bold mb-0">مقابلة مباشرة (يد بيد)<br><span class="text-muted fw-normal">في مكان عام متفق عليه (مجاناً)</span></label>
-                        </div>
+                        <label class="choice-card d-flex align-items-center gap-2 p-3">
+                            <input type="radio" name="deliveryMethod" value="Handover" class="delivery-choice" @(selectedDelivery == "Handover" || selectedDelivery == "" ? "checked" : "") required>
+                            <span class="small fw-bold mb-0">مقابلة مباشرة (يد بيد)<br><span class="text-muted fw-normal">في مكان عام متفق عليه (مجاناً)</span></span>
+                        </label>
                     </div>
                     <div class="col-md-6">
-                        <div class="border rounded-3 p-3 bg-light d-flex align-items-center gap-2">
-                            <input type="radio" name="deliveryMethod" id="d2" value="Courier">
-                            <label for="d2" class="small fw-bold mb-0">مندوب توصيل (Uber / InDrive)<br><span class="text-muted fw-normal">يتحمل المستأجر التكلفة</span></label>
-                        </div>
+                        <label class="choice-card d-flex align-items-center gap-2 p-3">
+                            <input type="radio" name="deliveryMethod" value="Courier" class="delivery-choice" @(selectedDelivery == "Courier" ? "checked" : "")>
+                            <span class="small fw-bold mb-0">مندوب توصيل (Uber / InDrive)<br><span class="text-muted fw-normal">يتحمل المستأجر التكلفة</span></span>
+                        </label>
                     </div>
+                </div>
+                <div class="mb-4">
+                    <label id="deliveryDetailsLabel" class="form-label small fw-bold">مكان المقابلة المتفق عليه</label>
+                    <input type="text" name="deliveryDetails" id="deliveryDetails" class="form-control"
+                           value="@deliveryDetails" placeholder="مثال: أمام مدخل متجر الكهرباء - شارع المعرض"
+                           maxlength="300" required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="renterNote" class="form-label small fw-bold">ملاحظة للمالك (اختيارية)</label>
+                    <textarea name="renterNote" id="renterNote" class="form-control" rows="3" maxlength="500"
+                              placeholder="اكتب أي تفاصيل تهم المالك قبل الموافقة على الحجز...">@renterNote</textarea>
+                    <div class="form-text small">تظهر الملاحظة في تفاصيل الحجز للمالك فقط، بحد أقصى 500 حرف.</div>
                 </div>
 
                 <!-- Local Payment Methods -->
                 <label class="form-label small fw-bold">طريقة الدفع المحلية المتاحة</label>
-                <div class="row g-2 mb-4">
-                    <div class="col-3">
-                        <div class="border rounded-3 p-2 text-center bg-light">
-                            <i class="fa-solid fa-mobile-screen text-success fs-4 d-block mb-1"></i>
+                <div class="row g-2 mb-3">
+                    <div class="col-6 col-lg-2">
+                        <label class="choice-card p-2 text-center d-block">
+                            <input type="radio" name="paymentMethod" value="InstaPay" class="payment-choice" @(selectedPayment == "InstaPay" ? "checked" : "") required>
+                            <i class="fa-solid fa-mobile-screen text-success fs-4 d-block mb-1 mt-1"></i>
                             <span class="small fw-bold">InstaPay</span>
-                        </div>
+                        </label>
                     </div>
-                    <div class="col-3">
-                        <div class="border rounded-3 p-2 text-center bg-light">
-                            <i class="fa-solid fa-wallet text-danger fs-4 d-block mb-1"></i>
+                    <div class="col-6 col-lg-2">
+                        <label class="choice-card p-2 text-center d-block">
+                            <input type="radio" name="paymentMethod" value="OPay" class="payment-choice" @(selectedPayment == "OPay" ? "checked" : "")>
+                            <i class="fa-solid fa-wallet text-warning fs-4 d-block mb-1 mt-1"></i>
+                            <span class="small fw-bold">OPay</span>
+                        </label>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <label class="choice-card p-2 text-center d-block">
+                            <input type="radio" name="paymentMethod" value="VodafoneCash" class="payment-choice" @(selectedPayment == "VodafoneCash" ? "checked" : "")>
+                            <i class="fa-solid fa-wallet text-danger fs-4 d-block mb-1 mt-1"></i>
                             <span class="small fw-bold">فودافون كاش</span>
-                        </div>
+                        </label>
                     </div>
-                    <div class="col-3">
-                        <div class="border rounded-3 p-2 text-center bg-light">
-                            <i class="fa-solid fa-credit-card text-primary fs-4 d-block mb-1"></i>
+                    <div class="col-6 col-lg-2">
+                        <label class="choice-card p-2 text-center d-block">
+                            <input type="radio" name="paymentMethod" value="BankCard" class="payment-choice" @(selectedPayment == "BankCard" ? "checked" : "")>
+                            <i class="fa-solid fa-credit-card text-primary fs-4 d-block mb-1 mt-1"></i>
                             <span class="small fw-bold">بطاقة بنكية</span>
-                        </div>
+                        </label>
                     </div>
-                    <div class="col-3">
-                        <div class="border rounded-3 p-2 text-center bg-light">
-                            <i class="fa-solid fa-money-bill-wave text-success fs-4 d-block mb-1"></i>
+                    <div class="col-6 col-lg-2">
+                        <label class="choice-card p-2 text-center d-block">
+                            <input type="radio" name="paymentMethod" value="CashOnDelivery" class="payment-choice" @(selectedPayment == "CashOnDelivery" || selectedPayment == "" ? "checked" : "")>
+                            <i class="fa-solid fa-money-bill-wave text-success fs-4 d-block mb-1 mt-1"></i>
                             <span class="small fw-bold">كاش عند التسليم</span>
-                        </div>
+                        </label>
                     </div>
                 </div>
 
+                <div id="paymentReferenceGroup" class="mb-3" style="display: none;">
+                    <label id="paymentReferenceLabel" class="form-label small fw-bold">رقم العملية أو بيانات التحويل</label>
+                    <input type="text" name="paymentReference" id="paymentReference" class="form-control"
+                           value="@paymentReference" maxlength="200" placeholder="أدخل رقم العملية أو رقم المحفظة التي حوّلت منها">
+                    <div id="paymentHint" class="form-text small"></div>
+                </div>
+                <div class="alert alert-light small border mb-4">
+                    <i class="fa-solid fa-circle-info text-primary ms-1"></i>
+                    الدفع هنا توثيق يدوي لعملية التحويل؛ لا يتم خصم مبلغ تلقائياً. أرفق بيانات التحويل الصحيحة ليتمكن المالك من المراجعة.
+                </div>
+
                 <!-- Dark Escrow Calculation Breakdown -->
-                <div class="dark-checkout-card mb-4">
+                <div class="dark-checkout-card mb-4"
+                     data-price="@Model.PricePerDay.ToString("0.##", CultureInfo.InvariantCulture)"
+                     data-deposit="@Model.SecurityDeposit.ToString("0.##", CultureInfo.InvariantCulture)">
                     <div class="d-flex justify-content-between mb-2 small">
-                        <span>إيجار الكاميرا (2 يوم × 450 ج.م):</span>
-                        <strong>900 ج.م</strong>
+                        <span>إيجار الغرض (<span id="rentDays">@days</span> يوم × @Model.PricePerDay.ToString("N0") ج.م):</span>
+                        <strong><span id="rentAmount">@rent.ToString("N0")</span> ج.م</strong>
                     </div>
                     <div class="d-flex justify-content-between mb-3 small">
                         <span>رسوم خدمة منصة سَلِّفني (10%):</span>
-                        <strong>90 ج.م</strong>
+                        <strong><span id="serviceFee">@fee.ToString("N0")</span> ج.م</strong>
                     </div>
                     <hr class="border-secondary">
                     <div class="d-flex justify-content-between mb-2 text-warning small">
                         <span>قيمة الوديعة المحتجزة مؤقتاً (تُسترد فور الفحص):</span>
-                        <strong>3,000 ج.م</strong>
+                        <strong>@Model.SecurityDeposit.ToString("N0") ج.م</strong>
                     </div>
                     <hr class="border-secondary">
                     <div class="d-flex justify-content-between align-items-center pt-1">
                         <span class="fw-bold fs-6">المبلغ الإجمالي للدفع:</span>
-                        <span class="fw-bold fs-4 text-success">3,990 ج.م</span>
+                        <span class="fw-bold fs-4 text-success"><span id="grandTotal">@total.ToString("N0")</span> ج.م</span>
                     </div>
                 </div>
 
@@ -115,3 +211,98 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function refreshCheckoutChoices() {
+            document.querySelectorAll('.choice-card').forEach(function (card) {
+                var input = card.querySelector('input[type=radio]');
+                card.classList.toggle('selected', !!(input && input.checked));
+            });
+
+            var payment = document.querySelector('input[name=paymentMethod]:checked');
+            var needsReference = payment && payment.value !== 'CashOnDelivery';
+            var group = document.getElementById('paymentReferenceGroup');
+            var reference = document.getElementById('paymentReference');
+            var hint = document.getElementById('paymentHint');
+            var label = document.getElementById('paymentReferenceLabel');
+
+            group.style.display = needsReference ? 'block' : 'none';
+            reference.required = !!needsReference;
+            if (payment && payment.value === 'InstaPay') {
+                label.textContent = 'رقم العملة أو بيانات تحويل InstaPay';
+                hint.textContent = 'أدخل رقم العملية أو رقم الهاتف/الإيميل الذي أرسلت منه التحويل.';
+            } else if (payment && payment.value === 'OPay') {
+                label.textContent = 'رقم محفظة OPay ورقم العملية';
+                hint.textContent = 'مثال: 01xxxxxxxxx - رقم العملية 123456789.';
+            } else if (payment && payment.value === 'VodafoneCash') {
+                label.textContent = 'رقم محفظة فودافون كاش ورقم العملية';
+                hint.textContent = 'مثال: 01xxxxxxxxx - رقم العملية 123456789.';
+            } else if (payment && payment.value === 'BankCard') {
+                label.textContent = 'آخر 4 أرقام من البطاقة ورقم العملية';
+                hint.textContent = 'لا تكتب بيانات البطاقة الكاملة؛ آخر 4 أرقام ورقم العملية يكفيان.';
+            } else {
+                label.textContent = 'رقم العملية أو بيانات التحويل';
+                hint.textContent = '';
+            }
+
+            var delivery = document.querySelector('input[name=deliveryMethod]:checked');
+            var detailsLabel = document.getElementById('deliveryDetailsLabel');
+            var details = document.getElementById('deliveryDetails');
+            if (delivery && delivery.value === 'Courier') {
+                detailsLabel.textContent = 'عنوان الاستلام مع مندوب التوصيل';
+                details.placeholder = 'اكتب العنوان الكامل ورقم الهاتف';
+            } else {
+                detailsLabel.textContent = 'مكان المقابلة المتفق عليه';
+                details.placeholder = 'مثال: أمام مدخل متجر الكهرباء - شارع المعرض';
+            }
+        }
+
+        document.querySelectorAll('.payment-choice, .delivery-choice').forEach(function (input) {
+            input.addEventListener('change', refreshCheckoutChoices);
+        });
+
+        function refreshPrice() {
+            var card = document.querySelector('.dark-checkout-card');
+            var startInput = document.getElementById('startDate');
+            var endInput = document.getElementById('endDate');
+            if (!card || !startInput || !endInput) return;
+
+            // Keep the visible breakdown in sync with the inclusive-day server calculation.
+            if (startInput.value) {
+                endInput.min = startInput.value;
+                var limit = new Date(startInput.value + 'T00:00:00Z');
+                limit.setUTCDate(limit.getUTCDate() + 29);
+                endInput.max = limit.toISOString().slice(0, 10);
+            }
+
+            var days = 0;
+            if (startInput.value && endInput.value) {
+                var startMs = Date.parse(startInput.value + 'T00:00:00Z');
+                var endMs = Date.parse(endInput.value + 'T00:00:00Z');
+                if (!isNaN(startMs) && !isNaN(endMs)) {
+                    days = Math.round((endMs - startMs) / 86400000) + 1;
+                    if (days < 1) days = 0;
+                }
+            }
+
+            var price = parseFloat(card.dataset.price) || 0;
+            var deposit = parseFloat(card.dataset.deposit) || 0;
+            var rent = days * price;
+            var fee = rent * 0.10;
+            var format = function (value) { return value.toLocaleString('ar-EG', { maximumFractionDigits: 2 }); };
+
+            document.getElementById('rentDays').textContent = days;
+            document.getElementById('rentAmount').textContent = format(rent);
+            document.getElementById('serviceFee').textContent = format(fee);
+            document.getElementById('grandTotal').textContent = format(rent + fee + deposit);
+        }
+
+        [document.getElementById('startDate'), document.getElementById('endDate')].forEach(function (input) {
+            if (input) input.addEventListener('change', refreshPrice);
+        });
+
+        refreshCheckoutChoices();
+        refreshPrice();
+    </script>
+}

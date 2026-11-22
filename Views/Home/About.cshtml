@@ -1,0 +1,39 @@
+@{
+    ViewData["Title"] = "عن سَلِّفني";
+}
+
+<div class="bg-white p-4 p-md-5 rounded-4 shadow-sm">
+    <h3 class="fw-bold mb-3"><span class="text-success">سَلِّفني</span> — منصة تأجير الأغراض بالتعاون</h3>
+    <p class="text-muted">
+        سَلِّفني منصة مصرية تتيح لك استئجار ما تحتاجه من أدوات ومعدات بدلاً من شرائها، وتتيح لأصحاب الأغراض عرضها بأمان أمام مستأجرين موثّقين.
+        نحن مشروع تخرج لكلية الهندسة بالتعاون مع وزارة الاتصالات وتكنولوجيا المعلومات.
+    </p>
+
+    <div class="row g-3 my-4">
+        <div class="col-md-4">
+            <div class="border rounded-4 p-4 h-100">
+                <i class="fa-solid fa-magnifying-glass text-success fs-2 mb-3"></i>
+                <h6 class="fw-bold">تصفّح وقارن</h6>
+                <p class="text-muted small mb-0">ابحث في السوق حسب القسم والمدينة والسعر، وراجع الصور الست لكل غرض قبل الحجز.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="border rounded-4 p-4 h-100">
+                <i class="fa-solid fa-shield-halved text-success fs-2 mb-3"></i>
+                <h6 class="fw-bold">احجز بأمان</h6>
+                <p class="text-muted small mb-0">يُحتجز مبلغ الإيجار والوديعة في حساب الضمان حتى اكتمال الفحص وإرجاع الغرض.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="border rounded-4 p-4 h-100">
+                <i class="fa-solid fa-star text-success fs-2 mb-3"></i>
+                <h6 class="fw-bold">قيّم وابنِ الثقة</h6>
+                <p class="text-muted small mb-0">بعد اكتمال الحجز يمكن لطرفي الصفحة تقييم الآخر، وينعكس ذلك على تقييم الثقة في الملف الشخصي.</p>
+            </div>
+        </div>
+    </div>
+
+    <a asp-controller="Items" asp-action="Index" class="btn btn-emerald">
+        <i class="fa-solid fa-store ms-1"></i> تصفح السوق الآن
+    </a>
+</div>

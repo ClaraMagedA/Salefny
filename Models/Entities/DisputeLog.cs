@@ -17,8 +17,15 @@ namespace SalefnyMVC.Models.Entities
 
         public bool IsResolved { get; set; } = false;
 
-        [Column(TypeName = "decimal(18,2)]")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal DeductedDepositAmount { get; set; } = 0.0m;
+
+        [MaxLength(1000)]
+        public string? ResolutionNote { get; set; }
+
+        public string? ResolvedByAdminId { get; set; }
+
+        public DateTime? ResolvedAt { get; set; }
 
         public DateTime LoggedAt { get; set; } = DateTime.UtcNow;
 

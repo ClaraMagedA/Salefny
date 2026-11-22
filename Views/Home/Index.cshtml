@@ -1,5 +1,9 @@
-﻿@{
+﻿@model IEnumerable<Item>
+@{
     ViewData["Title"] = "الرئيسية";
+    var categories = ViewBag.Categories as IEnumerable<Category> ?? Enumerable.Empty<Category>();
+    var fallbackImage = "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80";
+    var cities = new[] { "القاهرة", "الجيزة", "الإسكندرية", "الدقهلية", "جنوب سيناء" };
 }
 
 <style>
@@ -84,6 +88,13 @@
     }
 </style>
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success small">
+        <i class="fa-solid fa-circle-check ms-1"></i> @TempData["Success"]
+    </div>
+}
+
 <!-- Hero & Search Section -->
 <section class="mb-5">
     <div class="hero-banner">
@@ -99,10 +110,10 @@
                 <i class="fa-solid fa-location-dot text-muted ms-2"></i>
                 <select name="city" class="search-select">
                     <option value="">جميع المحافظات المصرية</option>
-                    <option value="Cairo">القاهرة</option>
-                    <option value="Giza">الجيزة</option>
-                    <option value="Alexandria">الإسكندرية</option>
-                    <option value="Dakahlia">الدقهلية</option>
+                    @foreach (var city in cities)
+                    {
+                        <option value="@city">@city</option>
+                    }
                 </select>
             </div>
             <div class="border-start d-none d-md-block" style="height: 30px;"></div>
@@ -110,9 +121,10 @@
                 <i class="fa-solid fa-layer-group text-muted ms-2"></i>
                 <select name="categoryId" class="search-select">
                     <option value="">جميع الأقسام</option>
-                    <option value="1">معدات تصوير</option>
-                    <option value="2">معدات تخييم</option>
-                    <option value="3">أجهزة منزلية</option>
+                    @foreach (var cat in categories)
+                    {
+                        <option value="@cat.Id">@cat.Name</option>
+                    }
                 </select>
             </div>
             <button type="submit" class="btn btn-emerald px-4 rounded-pill">بحث</button>
@@ -124,74 +136,47 @@
 <section>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="fw-bold mb-0"><i class="fa-solid fa-grid-2 text-success ms-2"></i> الأغراض المتاحة للتأجير الآن</h4>
-        <span class="text-muted small">6 أغراض معروضة</span>
+        <span class="text-muted small">@Model.Count() غرضاً معروضاً</span>
     </div>
 
-    <div class="row g-4">
-        <!-- Item Card 1 -->
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="item-card">
-                <div class="card-img-wrapper">
-                    <span class="location-badge"><i class="fa-solid fa-location-dot ms-1"></i> القاهرة</span>
-                    <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80" alt="كاميرا">
-                </div>
-                <div class="p-3">
-                    <span class="text-success small fw-bold">معدات تصوير</span>
-                    <h6 class="fw-bold mt-1">كاميرا Sony Alpha A7 III + عدسة 24-70mm</h6>
-                    <p class="text-muted small mb-3"><i class="fa-solid fa-user ms-1"></i> المالك: أحمد رامي (المعادي)</p>
-                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                        <div>
-                            <span class="fw-bold text-dark fs-5">850 ج.م</span>
-                            <span class="text-muted small">/ اليوم</span>
+    @if (Model == null || !Model.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="fa-solid fa-box-open fa-3x mb-3 d-block opacity-50"></i>
+            <p>لا توجد أغراض متاحة حالياً.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var item in Model)
+            {
+                var image = item.ItemImages?.OrderBy(i => i.AngleIndex).FirstOrDefault()?.ImagePath ?? fallbackImage;
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="item-card h-100">
+                        <div class="card-img-wrapper">
+                            <span class="location-badge"><i class="fa-solid fa-location-dot ms-1"></i> @item.City</span>
+                            <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id">
+                                <img src="@image" alt="@item.Title">
+                            </a>
                         </div>
-                        <a asp-controller="Items" asp-action="Details" asp-route-id="1" class="btn btn-emerald btn-sm">استأجر الآن</a>
+                        <div class="p-3 d-flex flex-column h-100">
+                            <span class="text-success small fw-bold">@item.Category?.Name</span>
+                            <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-dark">
+                                <h6 class="fw-bold mt-1">@item.Title</h6>
+                            </a>
+                            <p class="text-muted small mb-3"><i class="fa-solid fa-user ms-1"></i> المالك: @item.Owner?.FullName</p>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
+                                <div>
+                                    <span class="fw-bold text-dark fs-5">@item.PricePerDay.ToString("N0") ج.م</span>
+                                    <span class="text-muted small">/ اليوم</span>
+                                </div>
+                                <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id" class="btn btn-emerald btn-sm">استأجر الآن</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
         </div>
-
-        <!-- Item Card 2 -->
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="item-card">
-                <div class="card-img-wrapper">
-                    <span class="location-badge"><i class="fa-solid fa-location-dot ms-1"></i> جنوب سيناء (دهب)</span>
-                    <img src="https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=600&q=80" alt="خيمة">
-                </div>
-                <div class="p-3">
-                    <span class="text-success small fw-bold">معدات تخييم وتسلق</span>
-                    <h6 class="fw-bold mt-1">خيمة رحلات تتسع لـ 4 أشخاص + حقيبة نوم</h6>
-                    <p class="text-muted small mb-3"><i class="fa-solid fa-user ms-1"></i> المالك: سارة محمود (دهب)</p>
-                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                        <div>
-                            <span class="fw-bold text-dark fs-5">400 ج.م</span>
-                            <span class="text-muted small">/ اليوم</span>
-                        </div>
-                        <a asp-controller="Items" asp-action="Details" asp-route-id="2" class="btn btn-emerald btn-sm">استأجر الآن</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Item Card 3 -->
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="item-card">
-                <div class="card-img-wrapper">
-                    <span class="location-badge"><i class="fa-solid fa-location-dot ms-1"></i> الجيزة</span>
-                    <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80" alt="بروجكتور">
-                </div>
-                <div class="p-3">
-                    <span class="text-success small fw-bold">سينما منزلية وشاشات</span>
-                    <h6 class="fw-bold mt-1">بروجكتور ذكي بدقة 4K + شاشة عرض متحركة</h6>
-                    <p class="text-muted small mb-3"><i class="fa-solid fa-user ms-1"></i> المالك: عمر خالد (الشيخ زايد)</p>
-                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                        <div>
-                            <span class="fw-bold text-dark fs-5">500 ج.م</span>
-                            <span class="text-muted small">/ اليوم</span>
-                        </div>
-                        <a asp-controller="Items" asp-action="Details" asp-route-id="3" class="btn btn-emerald btn-sm">استأجر الآن</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    }
 </section>

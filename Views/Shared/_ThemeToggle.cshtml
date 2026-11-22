@@ -1,0 +1,35 @@
+<button type="button" id="themeToggle" class="btn btn-sm btn-outline-secondary theme-toggle"
+        aria-label="التبديل إلى الوضع الليلي" aria-pressed="false" title="الوضع الليلي">
+    <i class="fa-solid fa-moon" aria-hidden="true"></i>
+</button>
+
+<script>
+    (function () {
+        var button = document.getElementById('themeToggle');
+        if (!button) return;
+        var icon = button.querySelector('i');
+
+        function apply(theme, persist) {
+            var root = document.documentElement;
+            root.setAttribute('data-bs-theme', theme);
+            root.classList.toggle('dark-mode', theme === 'dark');
+
+            var isDark = theme === 'dark';
+            icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            button.title = isDark ? 'الوضع النهاري' : 'الوضع الليلي';
+            button.setAttribute('aria-label', isDark ? 'التبديل إلى الوضع النهاري' : 'التبديل إلى الوضع الليلي');
+            button.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+
+            if (persist) {
+                try { localStorage.setItem('salefny-theme', theme); } catch (e) { }
+            }
+        }
+
+        apply(document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light', false);
+
+        button.addEventListener('click', function () {
+            var next = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+            apply(next, true);
+        });
+    })();
+</script>

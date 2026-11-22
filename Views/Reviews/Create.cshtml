@@ -1,0 +1,71 @@
+@{
+    ViewData["Title"] = "تقييم الحجز";
+    var bookingId = ViewBag.BookingId;
+    var itemTitle = ViewBag.ItemTitle as string ?? "";
+    var revieweeName = ViewBag.RevieweeName as string ?? "الطرف الآخر";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+        <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm">
+            <h4 class="fw-bold text-center mb-3"><i class="fa-solid fa-star text-warning ms-2"></i> تقييم الحجز</h4>
+            <p class="text-muted small text-center mb-4">
+                قيّم تعاملك مع <strong>@revieweeName</strong> في حجز الغرض
+                <strong>@itemTitle</strong>. سيظهر التقييم في ملفه الشخصي.
+            </p>
+
+            <form asp-action="Create" method="post">
+                <input type="hidden" name="bookingId" value="@bookingId" />
+                <div asp-validation-summary="All" class="text-danger small mb-3"></div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold d-block text-center">اختر التقييم من 1 إلى 5 نجوم</label>
+                    <div class="d-flex justify-content-center gap-2 mt-3" dir="ltr">
+                        @for (var value = 1; value <= 5; value++)
+                        {
+                            var starId = "star" + value;
+                            <div>
+                                <input type="radio" id="@starId" name="rating" value="@value" class="btn-check" required>
+                                <label for="@starId" class="star-label p-1" title="@value من 5">
+                                    <i class="fa-regular fa-star fa-2x text-secondary"></i>
+                                </label>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="comment" class="form-label small fw-bold">تعليق (اختياري)</label>
+                    <textarea id="comment" name="comment" class="form-control" rows="4" maxlength="1000"
+                              placeholder="اكتب تفاصيل تعاملك مع الطرف الآخر..."></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-emerald px-4">
+                        <i class="fa-solid fa-paper-plane ms-1"></i> إرسال التقييم
+                    </button>
+                    <a asp-controller="Bookings" asp-action="MyBookings" class="btn btn-outline-secondary">إلغاء</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('input[name="rating"]').forEach(function (input) {
+            input.addEventListener('change', function () {
+                var selected = parseInt(this.value, 10);
+                document.querySelectorAll('.star-label').forEach(function (label) {
+                    var value = parseInt(label.getAttribute('for').replace('star', ''), 10);
+                    var icon = label.querySelector('i');
+                    var active = value <= selected;
+                    icon.classList.toggle('fa-solid', active);
+                    icon.classList.toggle('fa-regular', !active);
+                    icon.classList.toggle('text-warning', active);
+                    icon.classList.toggle('text-secondary', !active);
+                });
+            });
+        });
+    </script>
+}

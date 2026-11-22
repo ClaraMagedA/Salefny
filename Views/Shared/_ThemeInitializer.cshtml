@@ -1,0 +1,11 @@
+<script>
+    (function () {
+        var theme = 'light';
+        try {
+            theme = localStorage.getItem('salefny-theme') === 'dark' ? 'dark' : 'light';
+        } catch (e) { }
+        var root = document.documentElement;
+        root.setAttribute('data-bs-theme', theme);
+        root.classList.toggle('dark-mode', theme === 'dark');
+    })();
+</script>

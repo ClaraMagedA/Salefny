@@ -7,6 +7,7 @@
         Active,
         Completed,
         Cancelled,
-        Rejected
+        Rejected,
+        Disputed
     }
 }

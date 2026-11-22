@@ -1,105 +1,154 @@
-﻿@{
-    Layout = "_Layout";
-    ViewData["Title"] = "منازعات فحص الـ 6 زوايا وتتسوية الأضرار";
+﻿@model AdminDisputesViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "منازعات فحص الـ 6 زوايا وتسوية الأضرار";
+}
+
+@if (TempData["AdminMessage"] is string message)
+{
+    <div class="alert alert-success small"><i class="fa-solid fa-circle-check ms-1"></i> @message</div>
+}
+@if (TempData["AdminError"] is string error)
+{
+    <div class="alert alert-danger small"><i class="fa-solid fa-triangle-exclamation ms-1"></i> @error</div>
 }
 
 <div class="bg-white p-4 rounded-4 shadow-sm">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h5 class="fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation text-danger ms-2"></i> منازعات فحص الـ 6 زوايا وتتسوية الأضرار</h5>
-            <span class="text-muted small">استوديو المقارنة البصرية بين شبكة الاستلام وشبكة الإرجاع</span>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation text-danger ms-2"></i> منازعات فحص الـ 6 زوايا وتسوية الأضرار</h5>
+            <span class="text-muted small">مراجعة ادعاءات الأطراف واتخاذ القرار المالي للضمان.</span>
         </div>
-        <div class="btn-group btn-group-sm">
-            <button class="btn btn-emerald active">الكل</button>
-            <button class="btn btn-outline-secondary">معلقة</button>
-            <button class="btn btn-outline-secondary">ودائع عالية</button>
-        </div>
-    </div>
-
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>رقم العملية</th>
-                    <th>الغرض المعار</th>
-                    <th>المؤجر والمستأجر</th>
-                    <th>قيمة الوديعة</th>
-                    <th>حالة الضمان (Escrow)</th>
-                    <th>الإجراء المتاح</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><code>#ESC-9012</code></td>
-                    <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=50&q=80" class="rounded" width="40">
-                            <strong>كاميرا Canon EOS R6</strong>
-                        </div>
-                    </td>
-                    <td>مؤجر: أحمد م. &larr; مستأجر: سارة ك.</td>
-                    <td><strong>3,000 ج.م</strong></td>
-                    <td><span class="badge bg-warning text-dark">قيد المراجعة (Under Review)</span></td>
-                    <td>
-                        <button class="btn btn-dark btn-sm" data-bs-toggle="modal" data-bs-target="#disputeReviewModal"><i class="fa-solid fa-scale-balanced ms-1"></i> مراجعة ادعاء الخدش</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Dispute Resolution Modal -->
-<div class="modal fade" id="disputeReviewModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 rounded-4 overflow-hidden">
-            <div class="bg-dark text-white p-3 d-flex justify-content-between align-items-center">
-                <h6 class="fw-bold mb-0"><i class="fa-solid fa-scale-balanced text-warning ms-2"></i> مراجعة نزاع الخدش - عملية #ESC-9012</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="alert alert-warning small mb-4">
-                    <strong>ادعاء المؤجر (أحمد):</strong> "يوجد خدش سطحي في عدسة الكاميرا لم يكن موجوداً قبل التسليم"
-                </div>
-
-                <h6 class="fw-bold mb-3">مقارنة الزاوية العلوية (Top Angle Inspection):</h6>
-                <div class="row g-3 mb-4">
-                    <div class="col-6">
-                        <div class="border rounded-3 p-2 text-center bg-light">
-                            <span class="small fw-bold text-muted d-block mb-1">قبل التسليم (المؤجر)</span>
-                            <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=300&q=80" class="img-fluid rounded mb-2">
-                            <span class="badge bg-success">سليمة 100%</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="border border-danger rounded-3 p-2 text-center bg-light">
-                            <span class="small fw-bold text-muted d-block mb-1">بعد الإرجاع (المستأجر)</span>
-                            <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=300&q=80" class="img-fluid rounded mb-2">
-                            <span class="badge bg-danger">خدش طفيف ظاهر</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label fw-bold small">قرار الإدارة المالي للضمان (Escrow Decision)</label>
-                    <select class="form-select">
-                        <option>خصم 500 ج.م تكلفة إصلاح وتحويلها للمؤجر + إرجاع 2,500 ج.م للمستأجر</option>
-                        <option>خصم كامل الوديعة (3,000 ج.م) للمؤجر</option>
-                        <option>رفض الادعاء وإرجاع كامل الوديعة (3,000 ج.م) للمستأجر</option>
-                    </select>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                    <div>
-                        <span class="text-muted small d-block">مبلغ الضمان المحجوز</span>
-                        <h4 class="fw-bold text-danger mb-0">5,000 ج.م</h4>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-light" data-bs-dismiss="modal">إغلاق</button>
-                        <button class="btn btn-dark px-4">اعتماد القرار والتسوية</button>
-                    </div>
-                </div>
-            </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge bg-danger">نشطة: @Model.PendingCount.ToString("N0")</span>
+            @if (Model.ShowResolved)
+            {
+                <a asp-action="Disputes" asp-route-showResolved="false" class="btn btn-emerald btn-sm">عرض النزاعات النشطة</a>
+            }
+            else
+            {
+                <a asp-action="Disputes" asp-route-showResolved="true" class="btn btn-outline-secondary btn-sm">عرض النزاعات المسوّاة</a>
+            }
         </div>
     </div>
+
+    @if (!Model.Disputes.Any())
+    {
+        <div class="alert alert-info small mb-0">لا توجد نزاعات @(Model.ShowResolved ? "مسوّاة" : "نشطة") حالياً.</div>
+    }
+    else
+    {
+        <div class="d-grid gap-4">
+            @foreach (var dispute in Model.Disputes)
+            {
+                <div class="border rounded-4 p-3 p-md-4">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                        <div>
+                            <h6 class="fw-bold mb-1">
+                                @if (!string.IsNullOrWhiteSpace(dispute.ItemImagePath))
+                                {
+                                    <img src="@dispute.ItemImagePath" alt="@dispute.ItemTitle" class="rounded ms-1" width="38" height="38" style="object-fit:cover;">
+                                }
+                                @dispute.ItemTitle <span class="text-muted small">— حجز رقم @dispute.BookingId</span>
+                            </h6>
+                            <div class="text-muted small">
+                                المؤجر: <strong>@dispute.OwnerName</strong> <span dir="ltr">(@dispute.OwnerEmail)</span> •
+                                المستأجر: <strong>@dispute.RenterName</strong> <span dir="ltr">(@dispute.RenterEmail)</span>
+                            </div>
+                            <div class="text-muted small">
+                                مدة الحجز: @dispute.StartDate.ToString("yyyy/MM/dd") — @dispute.EndDate.ToString("yyyy/MM/dd") •
+                                ادعاء: @dispute.ClaimDescription
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            @if (dispute.IsResolved)
+                            {
+                                <span class="badge bg-success">مسوّى</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">قيد المراجعة</span>
+                            }
+                            <div class="text-muted small mt-1">@dispute.LoggedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <span class="small text-muted d-block">مبلغ التأمين</span>
+                            <strong class="text-danger">@dispute.EscrowDepositAmount.ToString("N2") ج.م</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="small text-muted d-block">حالة الحجز / الضمان</span>
+                            <span class="badge bg-secondary">@dispute.BookingStatus</span>
+                            <span class="badge bg-info text-dark">@dispute.DepositStatus</span>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="small text-muted d-block">المبلغ المخصوم</span>
+                            <strong>@dispute.DeductedDepositAmount.ToString("N2") ج.م</strong>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold small mb-2"><i class="fa-solid fa-images ms-1"></i> صور الإرجاع (6 زوايا)</h6>
+                    @if (dispute.ReturnPhotos.Any())
+                    {
+                        <div class="row g-2 mb-3">
+                            @foreach (var photo in dispute.ReturnPhotos.Take(6))
+                            {
+                                <div class="col-6 col-md-4 col-lg-2 text-center">
+                                    <a href="@photo" target="_blank">
+                                        <img src="@photo" alt="صورة إرجاع" class="img-fluid rounded border" style="height:90px;width:100%;object-fit:cover;">
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light border small mb-3">لا توجد صور إرجاع مرفقة.</div>
+                    }
+
+                    @if (dispute.IsResolved)
+                    {
+                        <div class="small text-muted border-top pt-2">
+                            <i class="fa-solid fa-clock-rotate-left ms-1"></i>
+                            سُوّي في @dispute.ResolvedAt?.ToLocalTime().ToString("yyyy/MM/dd HH:mm")
+                            @if (!string.IsNullOrWhiteSpace(dispute.ResolutionNote))
+                            {
+                                <span>— @dispute.ResolutionNote</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <form asp-action="ResolveDispute" asp-route-id="@dispute.Id" method="post" class="border-top pt-3">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-5">
+                                    <label class="form-label small fw-bold">ملاحظة القرار</label>
+                                    <input type="text" name="resolutionNote" class="form-control form-control-sm" placeholder="سبب القرار والملخص" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold">مبلغ الخصم (ج.م)</label>
+                                    <input type="number" name="deductedAmount" value="0" min="0" step="0.01" max="@dispute.EscrowDepositAmount" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="refundFull" value="true" id="refund-@dispute.Id">
+                                        <label class="form-check-label small fw-bold" for="refund-@dispute.Id">إرجاع كامل الضمان</label>
+                                    </div>
+                                    <input type="hidden" name="refundFull" value="false">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-dark btn-sm w-100"
+                                            onclick="return confirm('سيتم تحويل مبلغ الضمان وإغلاق النزاع. هل تريد المتابعة؟');">
+                                        <i class="fa-solid fa-scale-balanced ms-1"></i> اعتماد التسوية
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                </div>
+            }
+        </div>
+    }
 </div>
