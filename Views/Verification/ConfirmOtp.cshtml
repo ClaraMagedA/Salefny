@@ -2,27 +2,27 @@
     ViewData["Title"] = "تأكيد رمز التحقق";
     ViewData["ActiveAccountTab"] = "Profile";
     var demoOtp = ViewBag.DemoOtp as string;
-    var smsSent = ViewBag.SmsSent is bool s && s;
+    var otpSent = ViewBag.SmsSent is bool s && s;
 }
 
 <div class="bg-white p-4 rounded-4 shadow-sm mb-5">
     @await Html.PartialAsync("_AccountNav")
 
     <div class="mb-4">
-        <h4 class="fw-bold mb-1"><i class="fa-solid fa-shield-halved text-success ms-2"></i> تأكيد رقم الهاتف</h4>
+        <h4 class="fw-bold mb-1"><i class="fa-solid fa-shield-halved text-success ms-2"></i> تأكيد رمز التحقق</h4>
         <div class="alert alert-warning small py-2 px-3 mb-3">
             <i class="fa-solid fa-clock ms-1"></i> بعد إدخال الرمز يصبح طلب الهوية <strong>قيد مراجعة الإدارة</strong>؛ شعار «موثق» لا يظهر قبل الاعتماد.
         </div>
         <p class="text-muted small mb-0">
-            @if (smsSent)
+            @if (otpSent)
             {
-                <text>أرسلنا رمز تحقق من 6 أرقام عبر الرسائل القصيرة إلى الرقم</text>
+                <text>أرسلنا رمز تحقق من 6 أرقام إلى بريدك الإلكتروني</text>
             }
             else
             {
-                <text>أدخل رمز التحقق المرسل للرقم</text>
+                <text>أدخل رمز التحقق المرسل إلى بريدك الإلكتروني</text>
             }
-            <strong dir="ltr" class="text-dark">@ViewBag.PhoneNumber</strong>.
+            <strong dir="ltr" class="text-dark">@ViewBag.OtpEmail</strong>.
         </p>
     </div>
 
@@ -30,7 +30,7 @@
     {
         <div class="alert alert-info small">
             <i class="fa-solid fa-flask ms-1"></i>
-            <strong>وضع تجريبي:</strong> بوابة الرسائل (SMS Gateway) غير مُعدّة في <code>appsettings.json</code>، لذا لم تُرسل رسالة فعلية. يظهر الرمز هنا لمحاكاة الرسالة.
+            <strong>وضع تجريبي:</strong> خدمة البريد (SMTP) غير مُعدّة في <code>appsettings.json</code>، لذا لم يُرسل بريد فعلي. يظهر الرمز هنا لمحاكاة الرسالة.
             <div class="mt-2 fs-4 fw-bold text-center" dir="ltr" style="letter-spacing: 8px;">@demoOtp</div>
         </div>
     }
@@ -42,7 +42,7 @@
             <label for="otp" class="form-label small fw-bold">رمز التحقق (OTP)</label>
             <input id="otp" name="otp" type="text" inputmode="numeric" maxlength="6"
                    class="form-control text-center fs-5" placeholder="000000" dir="ltr" autocomplete="one-time-code" required>
-            <div class="form-text small">الرمز صالح لمدة 5 دقائق.</div>
+            <div class="form-text small">الرمز صالح لمدة 5 دقائق. لو لم تجده، راجعي مجلد الرسائل غير المرغوبة (Spam).</div>
         </div>
 
         <div class="d-flex gap-2 flex-wrap">

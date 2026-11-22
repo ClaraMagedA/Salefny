@@ -31,6 +31,13 @@ namespace Salefny.Controllers
         [HttpGet]
         public async Task<IActionResult> Create(int itemId, DateTime? startDate, DateTime? endDate)
         {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var currentUser = currentUserId == null ? null : await _context.Users.FindAsync(currentUserId);
+            if (currentUser == null || !currentUser.IsVerified)
+            {
+                TempData["Error"] = "يجب توثيق هويتك أولاً قبل حجز أي غرض.";
+                return RedirectToAction("Verify", "Verification");
+            }
             var item = await _context.Items
                 .Include(i => i.Owner)
                 .Include(i => i.Category)
@@ -72,6 +79,14 @@ namespace Salefny.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return Challenge();
+            var currentUser = await _context.Users.FindAsync(userId);
+            if (currentUser == null) return Challenge();
+
+            if (!currentUser.IsVerified)
+            {
+                TempData["Error"] = "يجب توثيق هويتك أولاً قبل إرسال طلب حجز.";
+                return RedirectToAction("Verify", "Verification");
+            }
 
             var item = await _context.Items.FindAsync(itemId);
             if (item == null) return NotFound();

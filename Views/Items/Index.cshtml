@@ -103,12 +103,12 @@ else
         {
             var image = item.ItemImages?.OrderBy(i => i.AngleIndex).FirstOrDefault()?.ImagePath ?? fallbackImage;
             <div class="col-12 col-md-6 col-lg-4">
-                <div class="item-card bg-white border rounded-4 h-100">
+                <div class="item-card bg-white border rounded-4 h-100 d-flex flex-column">
                     <div class="card-img-wrapper">
                         <span class="location-badge"><i class="fa-solid fa-location-dot ms-1"></i> @item.City</span>
                         <a asp-action="Details" asp-route-id="@item.Id"><img src="@image" alt="@item.Title" class="w-100" style="height:180px;object-fit:cover;"></a>
                     </div>
-                    <div class="p-3 d-flex flex-column h-100">
+                    <div class="p-3 d-flex flex-column flex-grow-1">
                         <span class="text-success small fw-bold">@item.Category?.Name</span>
                         <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-dark"><h6 class="fw-bold mt-1">@item.Title</h6></a>
                         <p class="text-muted small mb-3"><i class="fa-solid fa-user ms-1"></i> @item.Owner?.FullName</p>

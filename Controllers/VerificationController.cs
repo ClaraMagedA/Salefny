@@ -23,17 +23,18 @@ namespace SalefnyMVC.Controllers
         private const string OtpKey = "Verification.Otp";
         private const string OtpExpiryKey = "Verification.OtpExpiry";
         private const string PhoneKey = "Verification.Phone";
+        private const string EmailKey = "Verification.Email";
         private const string DocTypeKey = "Verification.DocType";
         private const string DocNumberKey = "Verification.DocNumber";
         private const string DocExpiryKey = "Verification.DocExpiry";
         private const string DocNameKey = "Verification.DocName";
         private const string DocImageKey = "Verification.DocImage";
-        private const string SmsSentKey = "Verification.SmsSent";
+        private const string SmsSentKey = "Verification.SmsSent"; // "true" = OTP was really emailed
 
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SalefnyDbContext _context;
-        private readonly ISmsSender _smsSender;
-        private readonly SmsGatewayOptions _smsOptions;
+        private readonly IEmailSender _emailSender;
+        private readonly EmailOptions _emailOptions;
         private readonly IWebHostEnvironment _environment;
         private readonly ILogger<VerificationController> _logger;
         private readonly INotificationService _notifications;
@@ -41,16 +42,16 @@ namespace SalefnyMVC.Controllers
         public VerificationController(
             UserManager<ApplicationUser> userManager,
             SalefnyDbContext context,
-            ISmsSender smsSender,
-            IOptions<SmsGatewayOptions> smsOptions,
+            IEmailSender emailSender,
+            IOptions<EmailOptions> emailOptions,
             IWebHostEnvironment environment,
             ILogger<VerificationController> logger,
             INotificationService notifications)
         {
             _userManager = userManager;
             _context = context;
-            _smsSender = smsSender;
-            _smsOptions = smsOptions.Value;
+            _emailSender = emailSender;
+            _emailOptions = emailOptions.Value;
             _environment = environment;
             _logger = logger;
             _notifications = notifications;
@@ -126,6 +127,12 @@ namespace SalefnyMVC.Controllers
                 return View(model);
             }
 
+            if (string.IsNullOrWhiteSpace(user.Email))
+            {
+                ModelState.AddModelError("", "لا يوجد بريد إلكتروني مسجل لحسابك لإرسال رمز التحقق إليه.");
+                return View(model);
+            }
+
             var upload = await SaveDocumentImageAsync(model.DocumentImage);
             if (upload.Path == null)
             {
@@ -140,32 +147,41 @@ namespace SalefnyMVC.Controllers
             HttpContext.Session.SetString(OtpKey, otp);
             HttpContext.Session.SetString(OtpExpiryKey, DateTime.UtcNow.AddMinutes(5).ToString("O", CultureInfo.InvariantCulture));
             HttpContext.Session.SetString(PhoneKey, model.PhoneNumber);
+            HttpContext.Session.SetString(EmailKey, user.Email);
             HttpContext.Session.SetString(DocTypeKey, model.DocumentType);
             HttpContext.Session.SetString(DocNumberKey, documentNumber);
             HttpContext.Session.SetString(DocExpiryKey, model.ExpiryDate.ToString("O", CultureInfo.InvariantCulture));
             HttpContext.Session.SetString(DocNameKey, documentName);
             HttpContext.Session.SetString(DocImageKey, savedDocumentPath);
 
-            ViewBag.PhoneNumber = model.PhoneNumber;
+            ViewBag.OtpEmail = user.Email;
 
-            if (!_smsOptions.IsConfigured)
+            if (!_emailOptions.IsConfigured)
             {
-                // Clearly-labelled local fallback — no SMS is actually delivered.
-                _logger.LogWarning("SMS gateway not configured. Demo verification OTP for {Phone}: {Otp}", model.PhoneNumber, otp);
+                // Clearly-labelled local fallback: no email is actually delivered.
+                _logger.LogWarning("Email (SMTP) not configured. Demo verification OTP for {Email}: {Otp}", user.Email, otp);
                 HttpContext.Session.SetString(SmsSentKey, "false");
                 ViewBag.SmsSent = false;
                 ViewBag.DemoOtp = otp;
                 return View("ConfirmOtp");
             }
 
-            var sms = await _smsSender.SendSmsAsync(model.PhoneNumber,
-                "سَلِّفني: رمز توثيق هويتك هو " + otp + " (صالح 5 دقائق)");
+            var safeName = System.Net.WebUtility.HtmlEncode(user.FullName ?? string.Empty);
+            var body = $@"<div dir=""rtl"" style=""font-family:Tahoma,Arial,sans-serif;max-width:480px;margin:auto;border:1px solid #e2e8f0;border-radius:12px;padding:24px;text-align:right"">
+<h2 style=""color:#0d9488;margin-top:0"">سَلِّفني</h2>
+<p>مرحباً {safeName}،</p>
+<p>رمز توثيق هويتك هو:</p>
+<p dir=""ltr"" style=""font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;color:#0f172a"">{otp}</p>
+<p style=""color:#64748b;font-size:13px"">الرمز صالح لمدة 5 دقائق. إذا لم تطلب هذا الرمز فتجاهل الرسالة ولا تشاركه مع أحد.</p>
+</div>";
 
-            if (!sms.Success)
+            var sent = await _emailSender.SendEmailAsync(user.Email, "رمز توثيق هويتك - سَلِّفني", body);
+
+            if (!sent)
             {
                 DeleteDocumentImage(savedDocumentPath);
                 ClearOtpSession();
-                ModelState.AddModelError("", sms.Error ?? "تعذر إرسال رمز التحقق. حاول مرة أخرى.");
+                ModelState.AddModelError("", "تعذر إرسال رمز التحقق إلى بريدك الإلكتروني. حاول مرة أخرى.");
                 ViewBag.SmsSent = false;
                 ViewBag.DemoOtp = null;
                 return View(model);
@@ -173,6 +189,7 @@ namespace SalefnyMVC.Controllers
 
             HttpContext.Session.SetString(SmsSentKey, "true");
             ViewBag.SmsSent = true;
+            ViewBag.DemoOtp = null;
             return View("ConfirmOtp");
         }
 
@@ -183,6 +200,7 @@ namespace SalefnyMVC.Controllers
                 return RedirectToAction(nameof(Verify));
 
             ViewBag.PhoneNumber = HttpContext.Session.GetString(PhoneKey);
+            ViewBag.OtpEmail = HttpContext.Session.GetString(EmailKey);
             var sent = HttpContext.Session.GetString(SmsSentKey) == "true";
             ViewBag.SmsSent = sent;
             ViewBag.DemoOtp = sent ? null : HttpContext.Session.GetString(OtpKey);
@@ -194,6 +212,7 @@ namespace SalefnyMVC.Controllers
         public async Task<IActionResult> ConfirmOtp(string otp)
         {
             ViewBag.PhoneNumber = HttpContext.Session.GetString(PhoneKey);
+            ViewBag.OtpEmail = HttpContext.Session.GetString(EmailKey);
             var smsSent = HttpContext.Session.GetString(SmsSentKey) == "true";
             ViewBag.SmsSent = smsSent;
             ViewBag.DemoOtp = smsSent ? null : HttpContext.Session.GetString(OtpKey);
@@ -222,10 +241,10 @@ namespace SalefnyMVC.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            // The OTP confirms phone ownership only. Identity badges are granted by an admin
+            // The OTP confirms email ownership only. Identity badges are granted by an admin
             // after reviewing the submitted document, so IsVerified stays unchanged here.
             user.PhoneNumber = HttpContext.Session.GetString(PhoneKey);
-            user.PhoneNumberConfirmed = true;
+            user.EmailConfirmed = true;
             await _userManager.UpdateAsync(user);
 
             var documentExpiryRaw = HttpContext.Session.GetString(DocExpiryKey) ?? DateTime.Today.AddYears(5).ToString("O", CultureInfo.InvariantCulture);
@@ -265,7 +284,7 @@ namespace SalefnyMVC.Controllers
                 "verification", "/Account/Profile");
 
             ClearOtpSession();
-            TempData["VerificationSuccess"] = "تم تأكيد رقم الهاتف وإرسال الهوية للمراجعة. الحالة قيد مراجعة الإدارة.";
+            TempData["VerificationSuccess"] = "تم تأكيد بريدك الإلكتروني وإرسال الهوية للمراجعة. الحالة قيد مراجعة الإدارة.";
             return RedirectToAction("Profile", "Account");
         }
 
@@ -352,6 +371,7 @@ namespace SalefnyMVC.Controllers
             HttpContext.Session.Remove(OtpKey);
             HttpContext.Session.Remove(OtpExpiryKey);
             HttpContext.Session.Remove(PhoneKey);
+            HttpContext.Session.Remove(EmailKey);
             HttpContext.Session.Remove(DocTypeKey);
             HttpContext.Session.Remove(DocNumberKey);
             HttpContext.Session.Remove(DocExpiryKey);

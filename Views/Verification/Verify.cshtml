@@ -7,12 +7,18 @@
 
 <div class="bg-white p-4 rounded-4 shadow-sm mb-5">
     @await Html.PartialAsync("_AccountNav")
-
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>@TempData["Error"]</span>
+        </div>
+    }
     <div class="mb-4">
         <h4 class="fw-bold mb-1"><i class="fa-solid fa-id-card text-success ms-2"></i> توثيق الهوية الوطنية (eKYC)</h4>
         <p class="text-muted small mb-0">افتح الكاميرا والتقط صورة واضحة للبطاقة أو الجواز. سيتم قراءة الرقم وتاريخ الانتهاء والاسم من الصورة، ثم التحقق من مطابقة الاسم لاسم ملفك الشخصي.</p>
         <div class="alert alert-warning small py-2 px-3 mt-3 mb-0">
-            <i class="fa-solid fa-clock ms-1"></i> بعد تأكيد رمز الهاتف تُرسل الهوية <strong>قيد مراجعة الإدارة</strong>، ولا يُفعّل شعار التوثيق إلا بعد اعتمادها.
+            <i class="fa-solid fa-clock ms-1"></i> بعد تأكيد رمز التحقق تُرسل الهوية <strong>قيد مراجعة الإدارة</strong>، ولا يُفعّل شعار التوثيق إلا بعد اعتمادها.
         </div>
     </div>
 
@@ -107,7 +113,7 @@
             <label asp-for="PhoneNumber" class="form-label small fw-bold"></label>
             <input asp-for="PhoneNumber" class="form-control" placeholder="01xxxxxxxxx" dir="ltr">
             <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
-            <div class="form-text small">سيُستخدم الرقم لإرسال رمز التحقق (OTP) وتأكيد ملكية الرقم.</div>
+            <div class="form-text small">سيُحفظ الرقم في ملفك الشخصي، وسيُرسل رمز التحقق (OTP) إلى بريدك الإلكتروني المسجل.</div>
         </div>
 
         <div class="d-flex gap-2 flex-wrap">
