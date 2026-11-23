@@ -62,8 +62,8 @@ dotnet run --launch-profile http
 
 | Account | Password | Roles |
 | --- | --- | --- |
-| `admin@salefny.local` | `Admin@123` | Renter, Admin |
-| `superadmin@salefny.local` | `Super@123` | Renter, Admin, SuperAdmin |
+| `salefnyapplication@gmail.com` | `AdminSalefny@2026` | Renter, Admin |
+| `salefny.app+superadmin@gmail.com` | `Super@2026!` | Renter, Admin, SuperAdmin |
 
 ### OTP demo fallback
 

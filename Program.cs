@@ -116,10 +116,10 @@ using (var scope = app.Services.CreateScope())
         return user;
     }
 
-    await EnsureAccountAsync("admin@salefny.local", "Admin@123", "مدير النظام",
+    await EnsureAccountAsync("salefnyapplication@gmail.com", "AdminSalefny@2026", "مدير النظام",
         new[] { AppRoles.Renter, AppRoles.Admin });
 
-    await EnsureAccountAsync("superadmin@salefny.local", "Super@123", "مدير النظام العام",
+    await EnsureAccountAsync("salefny.app+superadmin@gmail.com", "Super@2026!", "مدير النظام العام",
         new[] { AppRoles.Renter, AppRoles.Admin, AppRoles.SuperAdmin });
 
     // Existing data created before roles existed is grandfathered in.
