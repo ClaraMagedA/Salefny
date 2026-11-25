@@ -1,40 +1,42 @@
 ﻿@model Item
 @{
-    ViewData["Title"] = "تفاصيل الغرض والفحص الفني";
-
+    ViewData["Title"] = "تفاصيل الغرض والفحص";
     var isDemo = Model == null;
-    var title = isDemo ? "كاميرا Canon EOS R6 Mark II + عدسة RF 24-70mm" : Model.Title;
-    var category = isDemo ? "معدات تصوير سينمائي" : Model.Category?.Name;
-    var city = isDemo ? "القاهرة - المعادي" : Model.City;
-    var owner = isDemo ? "أحمد م." : Model.Owner?.FullName;
-    var price = isDemo ? 450m : Model.PricePerDay;
-    var deposit = isDemo ? 3000m : Model.SecurityDeposit;
-    var description = isDemo ? "كاميرا احترافية بحالة ممتازة." : Model.Description;
-    var mainImage = isDemo
-        ? "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80"
-        : (Model.ItemImages?.OrderBy(i => i.AngleIndex).FirstOrDefault()?.ImagePath
-           ?? "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80");
+    var title = isDemo ? "كاميرا Canon EOS R6 Mark II + عدسة RF 24-70mm" : Model!.Title;
+    var category = isDemo ? "معدات تصوير سينمائي" : Model!.Category?.Name;
+    var city = isDemo ? "القاهرة" : Model!.City;
+    var owner = isDemo ? "أحمد م." : Model!.Owner?.FullName;
+    var price = isDemo ? 450m : Model!.PricePerDay;
+    var deposit = isDemo ? 3000m : Model!.SecurityDeposit;
+    var description = isDemo ? "كاميرا بحالة ممتازة مع بطاريتين وشاحن وحقيبة حماية." : Model!.Description;
+    var mainImage = !isDemo
+        ? (Model!.ItemImages?.OrderBy(i => i.AngleIndex).FirstOrDefault()?.ImagePath ?? "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80")
+        : "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80";
 
     var uploaded = Model?.ItemImages?.OrderBy(i => i.AngleIndex).ToList() ?? new List<ItemImage>();
-    var angleNames = new[]
+    var angleLabels = new[]
     {
-        "1. الواجهة الأمامية (Front)", "2. الجهة الخلفية (Back)",
-        "3. الجانب الأيسر (Left)", "4. الجانب الأيمن (Right)",
-        "5. الجهة العلوية (Top)", "6. القاعدة والرقم التسلسلي (Bottom)"
+        "1. الواجهة الأمامية (Front)",
+        "2. الجهة الخلفية (Back)",
+        "3. الجانب الأيسر (Left)",
+        "4. الجانب الأيمن (Right)",
+        "5. الجهة العلوية (Top)",
+        "6. القاعدة والرقم التسلسلي (Bottom)"
     };
-    var fallbackImages = new[]
+
+    var angles = Enumerable.Range(0, 6).Select(i =>
     {
-        "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=500&q=80",
-        "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&w=500&q=80",
-        "https://images.unsplash.com/photo-1510127034890-ba27508e9f1c?auto=format&fit=crop&w=500&q=80",
-        "https://images.unsplash.com/photo-1495707902641-75cac588d2e9?auto=format&fit=crop&w=500&q=80",
-        "https://images.unsplash.com/photo-1452780212940-6f5c0d14d848?auto=format&fit=crop&w=500&q=80",
-        "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=500&q=80"
-    };
-    var angles = Enumerable.Range(0, 6).Select(i => new
-    {
-        Label = angleNames[i],
-        Image = uploaded.Count > i ? uploaded[i].ImagePath : fallbackImages[i]
+        var matchedByIndex = uploaded.FirstOrDefault(img => img.AngleIndex == i)?.ImagePath;
+        var imageByOrder = uploaded.Count > i ? uploaded[i].ImagePath : null;
+        var finalImage = !string.IsNullOrWhiteSpace(matchedByIndex)
+            ? matchedByIndex
+            : (!string.IsNullOrWhiteSpace(imageByOrder) ? imageByOrder : mainImage);
+
+        return new
+        {
+            Label = angleLabels[i],
+            Image = finalImage
+        };
     }).ToList();
 
     var availabilityStatus = ViewBag.AvailabilityStatus as string ?? "متاح";
@@ -46,143 +48,130 @@
 <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm">
     <div class="row g-4">
         <div class="col-md-6">
-            <img src="@mainImage" class="img-fluid rounded-4 shadow-sm w-100" style="max-height: 380px; object-fit: cover;" alt="@title">
+            <img src="@mainImage" class="img-fluid rounded-4 shadow-sm w-100" style="max-height: 380px; object-fit: cover;" alt="@title" />
         </div>
         <div class="col-md-6">
             <span class="badge bg-success mb-2">@category</span>
             <span class="badge @(availableNow ? "bg-success" : "bg-warning text-dark") mb-2">
-                <i class="fa-solid fa-circle-check ms-1"></i> @availabilityStatus
+                <i class="fa-solid fa-circle-check ms-1"></i>@availabilityStatus
             </span>
             <h3 class="fw-bold mb-2">@title</h3>
             <p class="text-muted small mb-3">
-                <i class="fa-solid fa-location-dot ms-1"></i> @city | المالك: @owner
-                <span class="badge-verified">موثق (eKYC)</span>
+                <i class="fa-solid fa-location-dot ms-1"></i>@city | المالك: @owner
+                <span class="badge-verified">موثق (KYC)</span>
             </p>
-
             <p class="text-muted small mb-4">@description</p>
 
             <div class="bg-light p-3 rounded-3 mb-3">
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">سعر التأجير اليومي:</span>
+                    <span class="text-muted">سعر الإيجار اليومي</span>
                     <strong class="fs-4 text-dark">@price.ToString("N0") ج.م</strong>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">رسوم خدمة المنصة (10% من الإيجار / يوم):</span>
-                    <strong class="text-dark">@feePerDay.ToString("N0") ج.م</strong>
+                    <span class="text-muted">رسوم الخدمة (10% من الإيجار)</span>
+                    <strong class="text-dark">@feePerDay.ToString("N0") ج.م / اليوم</strong>
                 </div>
-                <hr class="my-2">
+                <hr class="my-2" />
                 <div class="d-flex justify-content-between">
-                    <span class="text-muted">وديعة الضمان المحتجزة (تُسترد بعد الفحص):</span>
+                    <span class="text-muted">مبلغ التأمين (يُسترد بعد الإرجاع)</span>
                     <strong class="fs-5 text-success">@deposit.ToString("N0") ج.م</strong>
                 </div>
                 <div class="text-muted small mt-2">
-                    <i class="fa-solid fa-shield-halved ms-1"></i> يُحتجز الإيجار والوديعة في حساب الضمان ولا يُطلقان إلا بعد اكتمال الفحص.
-                    الإجمالي النهائي يُحسب حسب عدد الأيام في صفحة الحجز.
+                    <i class="fa-solid fa-shield-halved ms-1"></i>يُحسب الإجمالي النهائي حسب عدد الأيام في صفحة الحجز، ولا يُضاف مبلغ التأمين في حساب العمولة أو الإيرادات.
                 </div>
             </div>
 
             <a asp-controller="Items" asp-action="Index" class="small text-decoration-none">
-                <i class="fa-solid fa-arrow-right ms-1"></i> العودة إلى السوق
+                <i class="fa-solid fa-arrow-right ms-1"></i>العودة إلى السوق
             </a>
         </div>
     </div>
 
-    <hr class="my-4">
+    <hr class="my-4" />
 
     <div class="bg-white border rounded-4 p-4 mb-4">
-        <h5 class="fw-bold mb-2"><i class="fa-solid fa-calendar-circle-check text-success ms-2"></i> حالة التوفر</h5>
+        <h5 class="fw-bold mb-2"><i class="fa-solid fa-calendar-circle-check text-success ms-2"></i>حالة التوفر الحالية</h5>
         <p class="mb-3">
             <span class="badge @(availableNow ? "bg-success" : "bg-warning text-dark")">@availabilityStatus</span>
         </p>
         @if (unavailableWindows.Any())
         {
-            <p class="text-muted small mb-2">الفترات المحجوزة مسبقاً (لا يمكن حجزها):</p>
+            <p class="text-muted small mb-2">فترات محجوزة لا يمكن الحجز فيها مسبقًا:</p>
             <ul class="mb-0 small text-muted">
                 @foreach (var window in unavailableWindows)
                 {
-                    <li class="mb-1"><i class="fa-solid fa-ban text-danger ms-1"></i> @window</li>
+                    <li class="mb-1"><i class="fa-solid fa-ban text-danger ms-1"></i>@window</li>
                 }
             </ul>
         }
         else
         {
-            <p class="text-muted small mb-0">لا توجد فترات محجوزة حالياً — يمكنك اختيار أي نافذة مناسبة أدناه.</p>
+            <p class="text-muted small mb-0">لا توجد فترات محجوزة حاليًا — يمكنك اختيار أي فترة مناسبة في نافذة الحجز أدناه.</p>
         }
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="fw-bold mb-0"><i class="fa-solid fa-cube text-success ms-2"></i> الفحص الفني سداسي الزوايا</h5>
-        <span class="badge bg-success"><i class="fa-solid fa-shield-check ms-1"></i> موثّق من المالك</span>
+        <h5 class="fw-bold mb-0"><i class="fa-solid fa-cube text-success ms-2"></i>معرض الزوايا الست قبل التسليم</h5>
+        <span class="badge bg-success"><i class="fa-solid fa-shield-check ms-1"></i>أولوية من المالك</span>
     </div>
-    <p class="text-muted small mb-4">
-        صور حقيقية التقطها المالك من ست زوايا قبل النشر. راجعها جيداً قبل اختيار نافذة الحجز — أي ضرر غير موثّق في هذه الصور لا يُحتسب عليك عند الإرجاع.
-    </p>
+    <p class="text-muted small mb-4">صور حقيقية التقطها المالك من ست زوايا قبل التسليم. راجعها جيدًا قبل اختيار نافذة الحجز — أي ضرر غير موثق في هذه الصور يُحتسب عليه عند الإرجاع.</p>
 
     <div class="row g-3">
         @foreach (var angle in angles)
         {
             <div class="col-6 col-md-4 col-lg-2">
                 <div class="border rounded-3 overflow-hidden h-100 shadow-sm">
-                    <img src="@angle.Image" class="w-100" style="height:140px;object-fit:cover" alt="@angle.Label">
+                    <img src="@angle.Image" class="w-100" style="height:140px;object-fit:cover;" alt="@angle.Label" />
                     <div class="p-2 small fw-bold text-center bg-light border-top">@angle.Label</div>
                 </div>
             </div>
         }
     </div>
 
-    <hr class="my-4">
+    <hr class="my-4" />
 
-    @if (isDemo)
-    {
-        <div class="text-center py-3">
-            <a asp-controller="Items" asp-action="Index" class="btn btn-emerald btn-lg px-5">
-                <i class="fa-solid fa-store ms-2"></i> تصفح الأغراض المتاحة للحجز
-            </a>
-        </div>
-    }
-    else if (!Model.IsActive)
-    {
-        <div class="alert alert-secondary small mb-0">
-            <i class="fa-solid fa-ban ms-1"></i> هذا الغرض غير متاح حالياً للحجز؛ تم إزالته من السوق من قِبل المالك.
-        </div>
-    }
-    else
+    @if (!isDemo)
     {
         <div class="bg-light p-4 rounded-4">
-            <h5 class="fw-bold mb-1"><i class="fa-solid fa-calendar-days text-success ms-2"></i> اختر نافذة الحجز</h5>
-            <p class="text-muted small mb-4">
-                إن كنت راضياً عن حالة الغرض في الفحص أعلاه، حدّد تاريخ الاستلام والإرجاع ثم أكمل تأكيد الحجز والدفع الآمن.
-            </p>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-calendar-days text-success ms-2"></i>احجز نافذة الحجز الآن</h5>
+            <p class="text-muted small mb-4">حدد تاريخ الاستلام والإرجاع ثم أكمل تأكيد الحجز والدفع الأمن. تأكد أولًا من حالة التوفر في القسم أعلاه.</p>
 
             <form asp-controller="Bookings" asp-action="Create" method="get" class="row g-3 align-items-end">
-                <input type="hidden" name="itemId" value="@Model.Id">
+                <input type="hidden" name="itemId" value="@Model?.Id" />
                 <div class="col-md-4">
-                    <label class="form-label small fw-bold">تاريخ بدء الاستلام</label>
-                    <input type="date" name="startDate" class="form-control" value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" required>
+                    <label class="form-label small fw-bold">تاريخ البدء</label>
+                    <input type="date" name="startDate" class="form-control" value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" required />
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label small fw-bold">تاريخ الإرجاع</label>
-                    <input type="date" name="endDate" class="form-control" value="@DateTime.Today.AddDays(3).ToString("yyyy-MM-dd")" min="@DateTime.Today.AddDays(2).ToString("yyyy-MM-dd")" required>
+                    <label class="form-label small fw-bold">تاريخ الانتهاء</label>
+                    <input type="date" name="endDate" class="form-control" value="@DateTime.Today.AddDays(3).ToString("yyyy-MM-dd")" min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" required />
                 </div>
                 <div class="col-md-4 d-grid">
                     <button type="submit" class="btn btn-emerald btn-lg">
-                        <i class="fa-solid fa-calendar-check ms-2"></i> متابعة إلى تأكيد الحجز
+                        <i class="fa-solid fa-calendar-check ms-2"></i>متابعة إلى تأكيد الحجز
                     </button>
                 </div>
             </form>
         </div>
     }
-</div>
+    else
+    {
+        <div class="text-center py-3">
+            <a asp-controller="Items" asp-action="Index" class="btn btn-emerald btn-lg px-5">
+                <i class="fa-solid fa-store ms-2"></i>تصفح الأغراض المتاحة للحجز
+            </a>
+        </div>
+    }
 
-@* Reviews are rendered only when the partial is available in the build. *@
-@{
-    var reviewsPartialExists =
-        System.IO.File.Exists(System.IO.Path.Combine(System.AppContext.BaseDirectory, "Views", "Items", "_Reviews.cshtml"))
-        || System.IO.File.Exists(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Views", "Items", "_Reviews.cshtml"));
-    var itemReviews = ViewBag.ItemReviews as List<SalefnyMVC.Models.Entities.Review>
-        ?? new List<SalefnyMVC.Models.Entities.Review>();
-}
-@if (reviewsPartialExists)
-{
-    @await Html.PartialAsync("_Reviews", itemReviews)
-}
+    @* Reviews are rendered only when the partial is available in the build. *@
+    @{
+        var reviewsPartialExists =
+            System.IO.File.Exists(System.IO.Path.Combine(System.AppContext.BaseDirectory, "Views", "Items", "_Reviews.cshtml"))
+            || System.IO.File.Exists(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Views", "Items", "_Reviews.cshtml"));
+        var itemReviews = ViewBag.ItemReviews as List<SalefnyMVC.Models.Entities.Review> ?? new List<SalefnyMVC.Models.Entities.Review>();
+    }
+    @if (reviewsPartialExists)
+    {
+        @await Html.PartialAsync("_Reviews", itemReviews)
+    }
+</div>

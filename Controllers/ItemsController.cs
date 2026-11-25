@@ -36,16 +36,32 @@ namespace Salefny.Controllers
             return user != null && await _userManager.IsInRoleAsync(user, AppRoles.Owner);
         }
 
+        private static string NormalizeArabic(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+            return value.Trim()
+                .Replace('أ', 'ا')
+                .Replace('إ', 'ا')
+                .Replace('آ', 'ا')
+                .Replace('ى', 'ي')
+                .Replace('ة', 'ه')
+                .ToLowerInvariant();
+        }
+
         public async Task<IActionResult> Index(ItemSearchViewModel? model)
         {
             model ??= new ItemSearchViewModel();
-            model.Keyword ??= string.Empty;
-            model.City ??= string.Empty;
+            model.Keyword = (model.Keyword ?? string.Empty).Trim();
+            model.City = (model.City ?? string.Empty).Trim();
+
+            if (model.MinPrice.HasValue && model.MaxPrice.HasValue && model.MinPrice.Value > model.MaxPrice.Value)
+            {
+                (model.MinPrice, model.MaxPrice) = (model.MaxPrice, model.MinPrice);
+            }
+
             var sortKey = string.IsNullOrWhiteSpace(model.Sort)
                 ? "newest"
                 : model.Sort.Trim().ToLowerInvariant();
-            // Keep the canonical values used by the sort dropdown so the selected
-            // option survives a postback.
             model.Sort = sortKey switch
             {
                 "priceasc" => "priceAsc",
@@ -56,15 +72,13 @@ namespace Salefny.Controllers
             model.Page = Math.Max(1, model.Page);
             model.PageSize = 12;
 
-            // Only approved, published listings are searchable in the public souq.
             var approvedItems = _context.Items
                 .AsNoTracking()
                 .Where(i => i.IsActive && i.ApprovalStatus == ListingApprovalStatus.Approved);
 
-            // Cities come from the catalogue itself, never from a hardcoded list.
             model.Cities = await approvedItems
                 .Where(i => !string.IsNullOrWhiteSpace(i.City))
-                .Select(i => i.City)
+                .Select(i => i.City.Trim())
                 .Distinct()
                 .OrderBy(c => c)
                 .ToListAsync();
@@ -74,57 +88,56 @@ namespace Salefny.Controllers
                 .OrderBy(c => c.Id)
                 .ToListAsync();
 
-            IQueryable<Item> query = approvedItems
+            var filteredList = await approvedItems
                 .Include(i => i.Category)
                 .Include(i => i.ItemImages)
-                .Include(i => i.Owner);
+                .Include(i => i.Owner)
+                .ToListAsync();
 
-            var keyword = model.Keyword.Trim();
-            if (!string.IsNullOrEmpty(keyword))
+            var normKeyword = NormalizeArabic(model.Keyword);
+            if (!string.IsNullOrEmpty(normKeyword))
             {
-                query = query.Where(i => i.Title.Contains(keyword)
-                    || (i.Description != null && i.Description.Contains(keyword)));
+                filteredList = filteredList.Where(i =>
+                    NormalizeArabic(i.Title).Contains(normKeyword)
+                    || NormalizeArabic(i.Description).Contains(normKeyword)
+                    || NormalizeArabic(i.Category?.Name).Contains(normKeyword)
+                    || NormalizeArabic(i.City).Contains(normKeyword)).ToList();
             }
 
             if (!string.IsNullOrWhiteSpace(model.City))
-                query = query.Where(i => i.City == model.City);
-
-            if (model.CategoryId.HasValue)
-                query = query.Where(i => i.CategoryId == model.CategoryId.Value);
-
-            if (model.MinPrice.HasValue)
-                query = query.Where(i => i.PricePerDay >= model.MinPrice.Value);
-
-            if (model.MaxPrice.HasValue)
-                query = query.Where(i => i.PricePerDay <= model.MaxPrice.Value);
-
-            switch (model.Sort)
             {
-                case "priceAsc":
-                    query = query.OrderBy(i => i.PricePerDay).ThenByDescending(i => i.CreatedAt);
-                    break;
-                case "priceDesc":
-                    query = query.OrderByDescending(i => i.PricePerDay).ThenByDescending(i => i.CreatedAt);
-                    break;
-                case "rating":
-                    query = query.OrderByDescending(i => i.Owner.TrustRating).ThenByDescending(i => i.CreatedAt);
-                    break;
-                default:
-                    query = query.OrderByDescending(i => i.CreatedAt).ThenByDescending(i => i.Id);
-                    break;
+                var normCity = NormalizeArabic(model.City);
+                filteredList = filteredList.Where(i => NormalizeArabic(i.City) == normCity).ToList();
             }
 
-            model.TotalCount = await query.CountAsync();
+            if (model.CategoryId.HasValue)
+                filteredList = filteredList.Where(i => i.CategoryId == model.CategoryId.Value).ToList();
+
+            if (model.MinPrice.HasValue)
+                filteredList = filteredList.Where(i => i.PricePerDay >= model.MinPrice.Value).ToList();
+
+            if (model.MaxPrice.HasValue)
+                filteredList = filteredList.Where(i => i.PricePerDay <= model.MaxPrice.Value).ToList();
+
+            filteredList = model.Sort switch
+            {
+                "priceAsc" => filteredList.OrderBy(i => i.PricePerDay).ThenByDescending(i => i.CreatedAt).ToList(),
+                "priceDesc" => filteredList.OrderByDescending(i => i.PricePerDay).ThenByDescending(i => i.CreatedAt).ToList(),
+                "rating" => filteredList.OrderByDescending(i => i.Owner?.TrustRating ?? 0).ThenByDescending(i => i.CreatedAt).ToList(),
+                _ => filteredList.OrderByDescending(i => i.CreatedAt).ThenByDescending(i => i.Id).ToList()
+            };
+
+            model.TotalCount = filteredList.Count;
             model.TotalPages = model.TotalCount == 0
                 ? 0
                 : (int)Math.Ceiling(model.TotalCount / (double)model.PageSize);
             if (model.TotalPages > 0 && model.Page > model.TotalPages)
                 model.Page = model.TotalPages;
 
-            model.Items = await query
+            model.Items = filteredList
                 .Skip((model.Page - 1) * model.PageSize)
                 .Take(model.PageSize)
-                .ToListAsync();
+                .ToList();
 
             return View(model);
         }
@@ -139,7 +152,6 @@ namespace Salefny.Controllers
 
             if (item == null) return NotFound();
 
-            // Pending or rejected listings are visible only to their owner and admins.
             var canReview = false;
             if (User.Identity?.IsAuthenticated == true)
             {
@@ -196,8 +208,6 @@ namespace Salefny.Controllers
                 .Include(r => r.Reviewer)
                 .ToListAsync();
 
-            // Every showcase card is backed by a database row; the null case only
-            // keeps a stale link from crashing the page.
             return View(item);
         }
 
@@ -232,13 +242,9 @@ namespace Salefny.Controllers
             if (string.IsNullOrEmpty(userId)) return Challenge();
 
             item.OwnerId = userId;
-            // The item stays off the market until an admin verifies the product
-            // itself, its six clear photos, its condition and its quality.
             item.IsActive = false;
             item.ApprovalStatus = ListingApprovalStatus.Pending;
 
-            // Navigation/collection properties are populated by EF, not by the form.
-            // Remove their implicit validation errors before checking ModelState.
             foreach (var key in new[] { "OwnerId", "Owner", "Category", "ItemImages", "AvailabilityBlocks", "Bookings", "Reviews" })
                 ModelState.Remove(key);
 
@@ -338,8 +344,6 @@ namespace Salefny.Controllers
                 .FirstOrDefaultAsync(i => i.Id == id && i.OwnerId == userId);
             if (item == null) return NotFound();
 
-            // Bind only the fields an owner is allowed to change. Approval status,
-            // IsActive, owner and all admin inspection flags stay untouched.
             await TryUpdateModelAsync(
                 item,
                 string.Empty,
@@ -368,8 +372,6 @@ namespace Salefny.Controllers
                 .OrderBy(img => img.AngleIndex)
                 .ToListAsync();
 
-            // Each of the six angle inputs is optional. When supplied, the new
-            // photo replaces the existing photo for that same angle.
             var uploads = new IFormFile?[6];
             if (angleImages != null)
             {
@@ -439,7 +441,6 @@ namespace Salefny.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Remove the old files only after the database update succeeded.
             foreach (var oldPath in replacedPaths)
             {
                 if (!oldPath.StartsWith("/uploads/items/")) continue;
@@ -620,7 +621,6 @@ namespace Salefny.Controllers
                 return RedirectToAction("MyListings", "Account");
             }
 
-            // Keep the paths before EF removes the tracked image entities.
             var imagePaths = item.ItemImages?.Select(i => i.ImagePath).ToList() ?? new List<string>();
 
             _context.FavoriteItems.RemoveRange(_context.FavoriteItems.Where(f => f.ItemId == id));
@@ -630,7 +630,6 @@ namespace Salefny.Controllers
             _context.Items.Remove(item);
             await _context.SaveChangesAsync();
 
-            // Delete the uploaded image files left behind on disk.
             var folders = new HashSet<string>();
             foreach (var path in imagePaths)
             {

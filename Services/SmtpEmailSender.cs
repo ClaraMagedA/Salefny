@@ -26,21 +26,27 @@ namespace SalefnyMVC.Services
 
             try
             {
-                using var client = new SmtpClient(_options.Host, _options.Port)
+                var cleanPassword = _options.Password.Replace(" ", "").Trim();
+                var cleanUser = _options.User.Trim();
+                var cleanFrom = _options.FromAddress.Trim();
+
+                using var client = new SmtpClient(_options.Host.Trim(), _options.Port)
                 {
                     EnableSsl = _options.EnableSsl,
-                    Credentials = new NetworkCredential(_options.User, _options.Password),
-                    Timeout = 10000
+                    UseDefaultCredentials = false,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    Credentials = new NetworkCredential(cleanUser, cleanPassword),
+                    Timeout = 15000
                 };
 
                 using var message = new MailMessage
                 {
-                    From = new MailAddress(_options.FromAddress, _options.FromName),
+                    From = new MailAddress(cleanFrom, _options.FromName),
                     Subject = subject,
                     Body = htmlBody,
                     IsBodyHtml = true
                 };
-                message.To.Add(to);
+                message.To.Add(to.Trim());
 
                 await client.SendMailAsync(message);
                 _logger.LogInformation("OTP email sent to {Email}.", to);
@@ -48,6 +54,8 @@ namespace SalefnyMVC.Services
             }
             catch (Exception ex)
             {
+                Console.WriteLine("=== SMTP ERROR ===");
+                Console.WriteLine(ex.ToString());
                 _logger.LogError(ex, "Failed to send OTP email to {Email}.", to);
                 return false;
             }

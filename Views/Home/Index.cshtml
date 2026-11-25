@@ -54,6 +54,8 @@
         border-radius: 16px;
         background: white;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
         transition: transform 0.2s, box-shadow 0.2s;
     }
 
@@ -103,7 +105,7 @@
         <form asp-controller="Items" asp-action="Index" method="get" class="search-box-container d-flex align-items-center flex-wrap flex-md-nowrap gap-2">
             <div class="d-flex align-items-center flex-grow-1 px-2">
                 <i class="fa-solid fa-magnifying-glass text-muted ms-2"></i>
-                <input type="text" name="keyword" class="search-input" placeholder="عن ماذا تبحث؟ (كاميرا، خيمة، سُلَّم...)">
+                <input type="text" name="keyword" class="search-input" placeholder="عن ماذا تبحث؟ (كاميرا، خيمة، سُلَّم...)" />
             </div>
             <div class="border-start d-none d-md-block" style="height: 30px;"></div>
             <div class="d-flex align-items-center px-2">
@@ -133,9 +135,9 @@
 </section>
 
 <!-- Item Grid -->
-<section>
+<section class="mb-5 pb-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold mb-0"><i class="fa-solid fa-grid-2 text-success ms-2"></i> الأغراض المتاحة للتأجير الآن</h4>
+        <h4 class="fw-bold mb-0"><i class="fa-solid fa-grid-2 text-success ms-2"></i>الأغراض المتاحة للتأجير الآن</h4>
         <span class="text-muted small">@Model.Count() غرضاً معروضاً</span>
     </div>
 
@@ -155,23 +157,26 @@
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="item-card h-100">
                         <div class="card-img-wrapper">
-                            <span class="location-badge"><i class="fa-solid fa-location-dot ms-1"></i> @item.City</span>
+                            <span class="location-badge"><i class="fa-solid fa-location-dot ms-1"></i>@item.City</span>
                             <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id">
-                                <img src="@image" alt="@item.Title">
+                                <img src="@image" alt="@item.Title" />
                             </a>
                         </div>
-                        <div class="p-3 d-flex flex-column h-100">
+                        <div class="p-3 d-flex flex-column flex-grow-1">
                             <span class="text-success small fw-bold">@item.Category?.Name</span>
                             <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-dark">
                                 <h6 class="fw-bold mt-1">@item.Title</h6>
                             </a>
-                            <p class="text-muted small mb-3"><i class="fa-solid fa-user ms-1"></i> المالك: @item.Owner?.FullName</p>
-                            <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
+                            <p class="text-muted small mb-3"><i class="fa-solid fa-user ms-1"></i>المالك: @item.Owner?.FullName</p>
+
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto gap-2">
                                 <div>
                                     <span class="fw-bold text-dark fs-5">@item.PricePerDay.ToString("N0") ج.م</span>
                                     <span class="text-muted small">/ اليوم</span>
                                 </div>
-                                <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id" class="btn btn-emerald btn-sm">استأجر الآن</a>
+                                <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id" class="btn btn-emerald btn-sm">عرض التفاصيل والفحص</a>
+                                   
+                               
                             </div>
                         </div>
                     </div>

@@ -95,13 +95,12 @@ namespace SalefnyMVC.Controllers
 
             if (!sent)
             {
-                // Clearly-labelled local fallback — never presented as a delivered email.
-                _logger.LogWarning("SMTP is not configured. Demo login OTP for {Email}: {Otp}", user.Email, otp);
+                _logger.LogWarning("Failed to send login OTP email to {Email}.", user.Email);
+                ModelState.AddModelError("", "تعذر إرسال رمز التحقق إلى بريدك الإلكتروني حالياً. يرجى المحاولة لاحقاً.");
+                return View();
             }
 
             ViewBag.Email = user.Email;
-            ViewBag.Sent = sent;
-            ViewBag.DemoOtp = sent ? null : otp;
             return View("LoginOtp");
         }
 
@@ -112,8 +111,6 @@ namespace SalefnyMVC.Controllers
                 return RedirectToAction(nameof(Login));
 
             ViewBag.Email = HttpContext.Session.GetString(LoginEmailKey);
-            ViewBag.Sent = HttpContext.Session.GetString(LoginSentKey) == "true";
-            ViewBag.DemoOtp = ViewBag.Sent ? null : HttpContext.Session.GetString(LoginOtpKey);
             return View();
         }
 
@@ -122,8 +119,6 @@ namespace SalefnyMVC.Controllers
         public async Task<IActionResult> LoginOtp(string otp)
         {
             ViewBag.Email = HttpContext.Session.GetString(LoginEmailKey);
-            ViewBag.Sent = HttpContext.Session.GetString(LoginSentKey) == "true";
-            ViewBag.DemoOtp = ViewBag.Sent ? null : HttpContext.Session.GetString(LoginOtpKey);
 
             var expected = HttpContext.Session.GetString(LoginOtpKey);
             var expiryRaw = HttpContext.Session.GetString(LoginOtpExpiryKey);

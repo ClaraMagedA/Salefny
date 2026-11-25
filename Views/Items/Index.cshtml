@@ -1,21 +1,71 @@
 ﻿@model ItemSearchViewModel
+@using System.Globalization
 @{
-    ViewData["Title"] = "نتائج البحث في السوق";
+    ViewData["Title"] = "البحث في الإعلانات";
     var fallbackImage = "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80";
     var hasFilters = !string.IsNullOrWhiteSpace(Model.Keyword)
-        || !string.IsNullOrWhiteSpace(Model.City)
-        || Model.CategoryId.HasValue
-        || Model.MinPrice.HasValue
-        || Model.MaxPrice.HasValue;
+                  || !string.IsNullOrWhiteSpace(Model.City)
+                  || Model.CategoryId.HasValue
+                  || Model.MinPrice.HasValue
+                  || Model.MaxPrice.HasValue;
 }
 
+<style>
+    .item-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        background: #ffffff;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .item-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+        }
+
+    .card-img-wrapper {
+        position: relative;
+        height: 190px;
+        overflow: hidden;
+    }
+
+        .card-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+    .location-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(15, 23, 42, 0.75);
+        color: #ffffff;
+        backdrop-filter: blur(4px);
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        z-index: 2;
+    }
+
+    .items-results-wrapper {
+        margin-bottom: 48px;
+        padding-bottom: 16px;
+    }
+</style>
+
 <div class="bg-white p-4 rounded-4 shadow-sm mb-4">
-    <h4 class="fw-bold mb-3"><i class="fa-solid fa-magnifying-glass text-success ms-2"></i> نتائج تصفح الأغراض المتاحة</h4>
+    <h4 class="fw-bold mb-3"><i class="fa-solid fa-magnifying-glass text-success ms-2"></i>تصفية الإعلانات ونتائج البحث</h4>
     <form method="get" asp-action="Index" class="row g-2 align-items-end">
         <input type="hidden" name="Page" value="1" />
         <div class="col-md-4">
-            <label class="form-label small fw-bold mb-1">بحث بالاسم أو الوصف</label>
-            <input type="text" name="Keyword" value="@Model.Keyword" class="form-control" placeholder="مثال: كاميرا، خيمة، لابتوب...">
+            <label class="form-label small fw-bold mb-1">الكلمة أو الاسم</label>
+            <input type="text" name="Keyword" value="@Model.Keyword" class="form-control" placeholder="مثال: كاميرا، خيمة، دريل..." />
         </div>
         <div class="col-md-3">
             <label class="form-label small fw-bold mb-1">المحافظة</label>
@@ -53,93 +103,85 @@
         </div>
         <div class="col-md-3">
             <label class="form-label small fw-bold mb-1">أقل سعر (ج.م / يوم)</label>
-            <input type="number" name="MinPrice" value="@(Model.MinPrice?.ToString("0.##", CultureInfo.InvariantCulture))" min="0" step="0.01" class="form-control" placeholder="الحد الأدنى">
+            <input type="number" step="0.01" name="MinPrice" value="@(Model.MinPrice?.ToString("0.##", CultureInfo.InvariantCulture))" min="0" class="form-control" placeholder="الحد الأدنى" />
         </div>
         <div class="col-md-3">
             <label class="form-label small fw-bold mb-1">أعلى سعر (ج.م / يوم)</label>
-            <input type="number" name="MaxPrice" value="@(Model.MaxPrice?.ToString("0.##", CultureInfo.InvariantCulture))" min="0" step="0.01" class="form-control" placeholder="الحد الأعلى">
+            <input type="number" step="0.01" name="MaxPrice" value="@(Model.MaxPrice?.ToString("0.##", CultureInfo.InvariantCulture))" min="0" class="form-control" placeholder="الحد الأقصى" />
         </div>
         <div class="col-md-3">
-            <label class="form-label small fw-bold mb-1">ترتيب النتائج</label>
+            <label class="form-label small fw-bold mb-1">الترتيب حسب</label>
             <select name="Sort" class="form-select">
                 <option value="newest" selected="@(Model.Sort == "newest")">الأحدث</option>
                 <option value="priceAsc" selected="@(Model.Sort == "priceAsc")">السعر: من الأقل للأعلى</option>
                 <option value="priceDesc" selected="@(Model.Sort == "priceDesc")">السعر: من الأعلى للأقل</option>
-                <option value="rating" selected="@(Model.Sort == "rating")">الأعلى تقييماً للمالك</option>
+                <option value="rating" selected="@(Model.Sort == "rating")">الأعلى تقييمًا</option>
             </select>
         </div>
         <div class="col-md-3 d-flex gap-2">
-            <button type="submit" class="btn btn-emerald flex-fill"><i class="fa-solid fa-filter ms-1"></i> تصفية</button>
+            <button type="submit" class="btn btn-emerald flex-fill"><i class="fa-solid fa-filter ms-1"></i>تطبيق</button>
             <a asp-action="Index" class="btn btn-outline-secondary">مسح</a>
         </div>
     </form>
 </div>
 
-<p class="text-muted small mb-3">
-    <i class="fa-solid fa-circle-info ms-1"></i>
-    عدد النتائج: <strong class="text-dark">@Model.TotalCount</strong> غرضاً متاحاً
-    @if (Model.TotalPages > 0)
-    {
-        <span> — الصفحة @Model.Page من @Model.TotalPages</span>
-    }
-    @if (hasFilters)
-    {
-        <span class="ms-2">(مع تطبيق الفلاتر الحالية)</span>
-    }
-</p>
-
-@if (!Model.Items.Any())
-{
-    <div class="bg-white rounded-4 shadow-sm text-center py-5 text-muted">
-        <i class="fa-solid fa-magnifying-glass fa-3x mb-3 d-block opacity-50"></i>
-        <p class="mb-3">لا توجد أغراض مطابقة لبحثك.</p>
-        <a asp-action="Index" class="btn btn-emerald btn-sm">عرض كل الأغراض</a>
-    </div>
-}
-else
-{
-    <div class="row g-4">
-        @foreach (var item in Model.Items)
+<div class="items-results-wrapper">
+    <p class="text-muted small mb-3">
+        <i class="fa-solid fa-circle-info ms-1"></i>عدد النتائج: <strong class="text-dark">@Model.TotalCount</strong> إعلان
+        @if (Model.TotalPages > 0)
         {
-            var image = item.ItemImages?.OrderBy(i => i.AngleIndex).FirstOrDefault()?.ImagePath ?? fallbackImage;
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="item-card bg-white border rounded-4 h-100">
-                    <div class="card-img-wrapper">
-                        <span class="location-badge"><i class="fa-solid fa-location-dot ms-1"></i> @item.City</span>
-                        <a asp-action="Details" asp-route-id="@item.Id"><img src="@image" alt="@item.Title" class="w-100" style="height:180px;object-fit:cover;"></a>
-                    </div>
-                    <div class="p-3 d-flex flex-column h-100">
-                        <span class="text-success small fw-bold">@item.Category?.Name</span>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-dark"><h6 class="fw-bold mt-1">@item.Title</h6></a>
-                        <p class="text-muted small mb-3"><i class="fa-solid fa-user ms-1"></i> @item.Owner?.FullName</p>
-                        <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
-                            <span class="fw-bold text-success fs-5">@item.PricePerDay.ToString("N0") ج.م / يوم</span>
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-emerald btn-sm">عرض التفاصيل والفحص</a>
+            <span>— صفحة @Model.Page من @Model.TotalPages</span>
+        }
+        @if (hasFilters)
+        {
+            <span class="ms-2">(حالة الفلاتر: مفعّلة)</span>
+        }
+    </p>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="bg-white rounded-4 shadow-sm text-center py-5 text-muted">
+            <i class="fa-solid fa-magnifying-glass fa-3x mb-3 d-block opacity-50"></i>
+            <p class="mb-3">لا توجد إعلانات مطابقة لبحثك حاليًا.</p>
+            <a asp-action="Index" class="btn btn-emerald btn-sm">عرض كل الإعلانات</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var item in Model.Items)
+            {
+                var image = item.ItemImages?.OrderBy(i => i.AngleIndex).FirstOrDefault()?.ImagePath ?? fallbackImage;
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="item-card h-100">
+                        <div class="card-img-wrapper">
+                            <span class="location-badge"><i class="fa-solid fa-location-dot ms-1"></i>@item.City</span>
+                            <a asp-action="Details" asp-route-id="@item.Id">
+                                <img src="@image" alt="@item.Title" />
+                            </a>
+                        </div>
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <span class="text-success small fw-bold">@item.Category?.Name</span>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none text-dark">
+                                <h6 class="fw-bold mt-1">@item.Title</h6>
+                            </a>
+                            <p class="text-muted small mb-3"><i class="fa-solid fa-user ms-1"></i>@item.Owner?.FullName</p>
+
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto gap-2">
+                                <span class="fw-bold text-success fs-5">@item.PricePerDay.ToString("N0") ج.م / يوم</span>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-emerald btn-sm">عرض التفاصيل والفحص</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
-    </div>
+            }
+        </div>
 
-    @if (Model.TotalPages > 1)
-    {
-        <nav class="d-flex justify-content-center mt-4" aria-label="صفحات النتائج">
-            <ul class="pagination pagination-sm">
-                <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
-                    <a class="page-link"
-                       asp-action="Index"
-                       asp-route-Keyword="@Model.Keyword"
-                       asp-route-City="@Model.City"
-                       asp-route-CategoryId="@Model.CategoryId"
-                       asp-route-MinPrice="@Model.MinPrice"
-                       asp-route-MaxPrice="@Model.MaxPrice"
-                       asp-route-Sort="@Model.Sort"
-                       asp-route-Page="@(Model.Page - 1)">السابق</a>
-                </li>
-                @for (var p = 1; p <= Model.TotalPages; p++)
-                {
-                    <li class="page-item @(p == Model.Page ? "active" : "")">
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="d-flex justify-content-center mt-4 mb-3" aria-label="التنقل بين الصفحات">
+                <ul class="pagination pagination-sm">
+                    <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
                         <a class="page-link"
                            asp-action="Index"
                            asp-route-Keyword="@Model.Keyword"
@@ -148,21 +190,35 @@ else
                            asp-route-MinPrice="@Model.MinPrice"
                            asp-route-MaxPrice="@Model.MaxPrice"
                            asp-route-Sort="@Model.Sort"
-                           asp-route-Page="@p">@p</a>
+                           asp-route-Page="@(Model.Page - 1)">السابق</a>
                     </li>
-                }
-                <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
-                    <a class="page-link"
-                       asp-action="Index"
-                       asp-route-Keyword="@Model.Keyword"
-                       asp-route-City="@Model.City"
-                       asp-route-CategoryId="@Model.CategoryId"
-                       asp-route-MinPrice="@Model.MinPrice"
-                       asp-route-MaxPrice="@Model.MaxPrice"
-                       asp-route-Sort="@Model.Sort"
-                       asp-route-Page="@(Model.Page + 1)">التالي</a>
-                </li>
-            </ul>
-        </nav>
+                    @for (var p = 1; p <= Model.TotalPages; p++)
+                    {
+                        <li class="page-item @(p == Model.Page ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-Keyword="@Model.Keyword"
+                               asp-route-City="@Model.City"
+                               asp-route-CategoryId="@Model.CategoryId"
+                               asp-route-MinPrice="@Model.MinPrice"
+                               asp-route-MaxPrice="@Model.MaxPrice"
+                               asp-route-Sort="@Model.Sort"
+                               asp-route-Page="@p">@p</a>
+                        </li>
+                    }
+                    <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-Keyword="@Model.Keyword"
+                           asp-route-City="@Model.City"
+                           asp-route-CategoryId="@Model.CategoryId"
+                           asp-route-MinPrice="@Model.MinPrice"
+                           asp-route-MaxPrice="@Model.MaxPrice"
+                           asp-route-Sort="@Model.Sort"
+                           asp-route-Page="@(Model.Page + 1)">التالي</a>
+                    </li>
+                </ul>
+            </nav>
+        }
     }
-}
+</div>
