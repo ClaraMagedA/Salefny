@@ -178,3 +178,47 @@ body {
   background: rgba(255, 255, 255, 0.06);
   color: #fff;
 }
+/* Booking page: selectable cards (delivery + payment) in dark mode */
+[data-bs-theme="dark"] .choice-card {
+    background-color: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+    [data-bs-theme="dark"] .choice-card:hover {
+        border-color: #10b981;
+        background-color: #12302b;
+    }
+
+    [data-bs-theme="dark"] .choice-card.selected {
+        border-color: #10b981;
+        background-color: #064e3b;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+    }
+
+    [data-bs-theme="dark"] .choice-card .text-muted {
+        color: #94a3b8 !important;
+    }
+
+/* Light alert box used for notes (e.g. the payment notice) */
+[data-bs-theme="dark"] .alert-light {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    border-color: #334155 !important;
+}
+/* Escrow policy page: step cards and dispute rules in dark mode */
+[data-bs-theme="dark"] .policy-step {
+    background-color: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .policy-rule {
+    background-color: #0f172a;
+    color: #e2e8f0;
+}
+
+    [data-bs-theme="dark"] .policy-step h6,
+    [data-bs-theme="dark"] .policy-rule h6 {
+        color: #f1f5f9;
+    }
